@@ -529,3 +529,41 @@ RQ3 NOT run. Key decisions and what the synthetic work uncovered:
 real-data RQ3 fitting.**
 
 ---
+
+## 2026-07-11 — RQ3 pre-commitment review: real-input grounding + additions
+
+User review caught that the ceiling/reversal rested on illustrative inputs
+(generic Gaussian gap spreads; synthetic-world noise). Both recomputed from
+real quantities already in the repo (scripts/12; NO held-out calibration
+number touched — training fits and hypothetical-truth expectations only):
+
+- **Ceiling, empirical gaps**: real vote-weighted gap distribution is far
+  narrower than assumed (median |gap| 0.31 vs illustrative σ_g≥2.1) →
+  ceiling collapses 1.56×MPD → **≤0.23×MPD** (plausible symmetric units
+  0.005–0.08×MPD). Conclusion strengthened ~7×.
+- **Reversal, real SEs**: Fisher SEs implemented (known-null-space
+  deflation — bare pinv inverted the gauge direction and produced garbage
+  on first run, caught immediately: SEs of 45k nats); validated vs
+  published bootstrap SDs (Spearman 0.983, ratio 0.80). Real median SEs
+  1.6–4.5 Elo. **P2's plugin-noise reversal does NOT transfer**: under
+  lattice-truth with real noise, expected delta stays positive
+  (+0.05…+0.27×MPD realistic truth; ≤+1.14×MPD extreme truth, earliest
+  regime). Corrected honestly in §6.1: equivalence remains the a-priori
+  expectation, but via the effect-ceiling route, not the reversal route;
+  the overconfidence mechanism stays live for the recent-entrant stratum
+  (P2-like noise there).
+- **§4.1 added**: pre-specified steepness-confound procedure (uncertainty-
+  integrated re-prediction with training-fit Fisher SEs, identical
+  correction both methods, full pipeline re-run; fixed wording for
+  shrinks-below-MPD vs survives-correction vs inconclusive).
+- **§4.2 added**: sub-MPD significant leans reported as "practically
+  equivalent despite a detectable directional lean" — effect size is the
+  governing word, rule written before any real p-value exists.
+- **Paper note added**: plugin-overconfidence crossover flagged as a
+  standalone methodological contribution (general to ranking/reward-model
+  deployments with steep links and no uncertainty correction).
+
+**Status: real-input grounding done, doc updated. STILL NO real-data RQ3
+fitting. Awaiting user go-ahead.**
+
+---

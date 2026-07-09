@@ -219,6 +219,50 @@ is written before any real p-value exists.
   so real strata will be far larger; if they are not, the b2 grade may be
   unpowerable and will be reported as such rather than forced.)
 
+### 5.1 Era-bin pooling for the recent-entrant stratum (fixed 2026-07-11,
+before real fitting — scripts/14, results/tables/rq3_bin_rule.csv)
+
+§6.2 localized any plausibly-detectable effect to windows whose recent
+cohort is noisy; single such windows are far below the §5 minimum, so a
+pooled read is required and is specified here, tied to the mechanism rather
+than an arbitrary count.
+
+- **Bin variable**: r_k = (median bootstrap-calibrated SE of the 28-day
+  recent cohort at T_k) / (median SE of all models at T_k), computed from
+  training fits only. Measured over all 14 checkpoints, r_k is NOT
+  monotone in calendar time (e.g., 2024-07-31 has r=1.58) — so the bins
+  are noise-based, with era language only as description.
+- **Bins (thresholds sit in wide empirical gaps)**:
+  - **high-noise ("early")**: r ≥ 2.0 → {2023-08-31, 2023-09-30}
+    (members r = 3.15, 3.32; nearest non-member 1.69).
+  - **moderate**: 1.25 ≤ r < 2.0 → {2023-07-31, 2023-10-31, 2024-01-31,
+    2024-02-29, 2024-07-31} (temporally scattered — reported as such).
+  - **low-noise**: r < 1.25 → the remaining 6 window-starting checkpoints.
+  (Windows are binned by their STARTING checkpoint T_k. The last
+  checkpoint 2024-08-12 starts no window.)
+- **Weighting within a bin: inverse-variance** across windows,
+  w_k = n_k / s²_k with s²_k the per-window per-vote sample variance of
+  the paired delta. One-line justification: stratum window sizes differ by
+  ~100× and per-vote delta variance genuinely differs across strata and
+  eras, so equal or pure-vote weighting would either drown small windows
+  or ignore heteroskedasticity. Vote-count weighting reported as a
+  sensitivity. (Full-POPULATION pooling stays vote-weighted as committed
+  in §3 — unchanged.)
+- **Minimum-N, explicit numbers**: per stratum-window ≥ **500** scoreable
+  decisive votes (as in §5); pooled bin ≥ **1,500**. From training-side
+  proxies (28-day stratum decisive counts at the two high-noise
+  checkpoints: 1,004 and 2,361), the pooled high-noise bin is expected at
+  roughly 2–5k scoreable stratum votes → **clears the pooled minimum; it
+  will be reported with a CI.**
+- **Pre-stated power honesty**: with per-vote delta SD ≈ 0.03 nats
+  (synthetic-world scale), a ~3.5k-vote pooled bin has SE ≈ 5e-4 nats ≈
+  1.2×MPD — resolving only effects ≳ 2.5×MPD. The realistic-truth
+  expectation for this bin (+1.58×MPD, §6.2) sits BELOW that resolution,
+  so the likely honest outcome is a wide-CI read reported descriptively;
+  only stress-bound-scale effects (≳2.4×MPD) could produce a CI excluding
+  zero here. Recorded before fitting so a wide-CI early-bin result is not
+  spun in either direction.
+
 ## 6. Synthetic validation — PASSED (scripts/10, 11; tables in results/)
 
 All worlds run through the real pipeline code and real thresholds.

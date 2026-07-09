@@ -85,8 +85,14 @@ def fit_gaplink(
     include_both_bad: bool = False,
     l2: float = 1e-6,
     tol: float = 1e-13,
-) -> pd.Series:
-    """Fit abilities (higher = better) by per-vote MLE. Returns mean-centered Series."""
+    full_output: bool = False,
+):
+    """Fit abilities (higher = better) by per-vote MLE. Returns mean-centered Series.
+
+    With full_output=True returns (series, penalized_nll_total) — the total
+    (unnormalized) negative log-likelihood at the optimum, for profiling
+    structural parameters such as the lattice unit.
+    """
     data = VoteData.from_battles(battles)
     n = len(data.models)
 
@@ -137,4 +143,59 @@ def fit_gaplink(
     if not res.success and "REL_REDUCTION" not in str(res.message):
         raise RuntimeError(f"MLE did not converge: {res.message}")
     theta = res.x - res.x.mean()
-    return pd.Series(theta, index=data.models).sort_values(ascending=False)
+    series = pd.Series(theta, index=data.models).sort_values(ascending=False)
+    if full_output:
+        # undo the conditioning normalization; includes the (tiny) l2 term
+        return series, float(res.fun / norm)
+    return series
+
+
+def profile_lattice_unit(
+    battles: pd.DataFrame,
+    units: np.ndarray,
+    make_link,
+    mode: str = "native",
+    include_both_bad: bool = False,
+    refine: bool = True,
+) -> tuple[float, pd.Series, pd.DataFrame]:
+    """Profile-MLE over the lattice unit (tie-band width).
+
+    The unit enters only through the link curves, so joint MLE reduces to a
+    1D profile: for each candidate unit, rebuild the link (cheap) and
+    maximize over abilities. Returns (best_unit, theta_at_best, profile_df).
+
+    `make_link` is a callable unit -> link object (kept injectable so tests
+    can pass reduced-resolution links).
+
+    If refine=True, one quadratic-interpolation step through the best grid
+    point and its neighbors sharpens the estimate beyond grid resolution.
+    """
+    rows = []
+    fits = {}
+    for u in units:
+        theta, nll = fit_gaplink(battles, make_link(float(u)), mode=mode,
+                                 include_both_bad=include_both_bad, full_output=True)
+        rows.append({"unit": float(u), "nll": nll})
+        fits[float(u)] = theta
+    prof = pd.DataFrame(rows).sort_values("unit").reset_index(drop=True)
+    k = int(prof["nll"].idxmin())
+    best_u = float(prof.loc[k, "unit"])
+
+    if refine and 0 < k < len(prof) - 1:
+        x = prof["unit"].to_numpy()[k - 1:k + 2]
+        y = prof["nll"].to_numpy()[k - 1:k + 2]
+        denom = (x[0] - x[1]) * (x[0] - x[2]) * (x[1] - x[2])
+        a = (x[2] * (y[1] - y[0]) + x[1] * (y[0] - y[2]) + x[0] * (y[2] - y[1])) / denom
+        b = (x[2] ** 2 * (y[0] - y[1]) + x[1] ** 2 * (y[2] - y[0]) + x[0] ** 2 * (y[1] - y[2])) / denom
+        if a > 0:
+            u_star = float(-b / (2 * a))
+            if x[0] < u_star < x[2]:
+                theta, nll = fit_gaplink(battles, make_link(u_star), mode=mode,
+                                         include_both_bad=include_both_bad, full_output=True)
+                if nll < prof.loc[k, "nll"]:
+                    fits[u_star] = theta
+                    prof = pd.concat([prof, pd.DataFrame([{"unit": u_star, "nll": nll}])],
+                                     ignore_index=True).sort_values("unit").reset_index(drop=True)
+                    best_u = u_star
+
+    return best_u, fits[best_u], prof

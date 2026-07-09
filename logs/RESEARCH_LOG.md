@@ -288,3 +288,56 @@ fitting on real data has been run.
 awaiting go-ahead.**
 
 ---
+
+## 2026-07-10 — Phase 3 real-data step (after user review)
+
+**Review corrections applied first:**
+
+1. **RQ4 fitted-vs-fitted fix.** The 2.8%-vs-18.7% note in the previous entry
+   was a sanity observation about an UNFIT default and must not be cited as a
+   preliminary result (now stated in logs/RQ4_DESIGN.md). Davidson's ν is an
+   MLE quantity; the lattice unit must be too. Implemented
+   `src/fit.py::profile_lattice_unit` (unit enters only via curves → joint
+   MLE reduces to a cheap 1D profile; grid + quadratic refinement; chose
+   profile over joint because curve rebuild is 0.07s and the profile gives
+   the likelihood curve for free). Synthetic check
+   (`scripts/06_unit_profile_validation.py`, seed 20260710, true unit 0.5,
+   ~189k votes): fitted 0.513 (within 10% criterion), θ recovery Spearman
+   0.997 / RMSE 0.039, interior convex minimum. PASSED.
+2. **Anchoring convention settled BEFORE any rolling refit** (src/anchoring.py):
+   **gpt-4-0613 pinned to 0.0 in native units, both methods, every fit.**
+   Reasoning: fixed dated checkpoint (no silent drift), 96,284 votes, active
+   2023-06-27 → 2024-08-14 (present in every cumulative window; mixtral-8x7b,
+   BT production's anchor, only enters 2023-12-11 — too late). Same anchor for
+   both methods so cross-method numbers never mix conventions. Pre-specified
+   caveat + sensitivity: single-anchor propagates the anchor's own noise as a
+   common offset into |Δθ| metrics → RQ1 will also report median-alignment on
+   common incumbents; rank metrics immune by construction.
+
+**Full-population side-by-side fits** (`scripts/07_fit_full_real.py`;
+dedup_sampled, full file, 1,670,250 battles, 129 models; identical half-tie
+treatment both sides; anchored gpt-4-0613=0):
+
+- BT (logistic link) 4.5s; lattice 12.0s. Ratings:
+  `results/tables/full_fits_20240814.csv`, scatter in results/figures.
+- **Consistency check (user gate): Spearman 0.99993, Kendall 0.9978,
+  max rank move 2 positions** (mistral-7b-instruct 112↔114,
+  gemma-1.1-2b-it 114↔112, three others ±2/±1; all mid/low-table).
+  The ≥1000-votes subset row is IDENTICAL to full population because every
+  model in the full file has ≥1,312 votes — the subset distinction only
+  bites in RQ1's shorter windows.
+- **Unit profile on real data (RQ4 groundwork, not the RQ4 comparison):**
+  fitted unit 0.800 (interior, clean profile), implying D(0)=22.6% at-zero
+  dead-heat mass vs 20.45% observed quality-tie share among non-bothbad
+  votes. Descriptive closeness only — no Davidson comparator fitted yet, no
+  held-out evaluation; the RQ4 protocol remains pending.
+- **Unit-(in)sensitivity of the half-tie fit, measured:** ranks invariant
+  (Spearman 0.999933 between unit 0.1 and 0.800 fits) but magnitudes rescale
+  (max|Δθ|=0.30). Consequence recorded in RQ4_DESIGN.md: RQ1/RQ3 hold the
+  unit fixed across all fits within an experiment; proposal = 0.800
+  everywhere with unit-0.1 sensitivity rerun of RQ1 headlines.
+
+**Status: side-by-side fits in place and consistent. STOPPED before the
+rolling-refit experiment, awaiting user review per instruction.**
+
+---

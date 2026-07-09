@@ -11,6 +11,17 @@ produce identical refit stability while differing in held-out calibration.
 (That said, section 6's discoveries DO bound what is theoretically
 achievable — stated there, derived from synthetic/analytic work only.)
 
+**Pre-committed expectation (recorded before any real fitting, mirroring
+RQ1_FINDINGS.md's scope paragraph):** grounded in the real gap distribution
+and real estimation noise (§6.1–6.2), the a-priori expectation is that
+full-population RQ3 will show practical equivalence; if a genuine effect
+exists anywhere in this dataset, the analysis indicates it would most
+plausibly appear in the recent-entrant stratum of the early (2023)
+windows — and would only reach practical significance under a generating
+process more skewed than a typical lattice link. This expectation is
+recorded before real fitting so the eventual stratified framing cannot be
+read as chosen post hoc.
+
 ## 1. Split design
 
 **Rolling-origin, reusing RQ1's checkpoint grid.** Train on all dedup
@@ -154,9 +165,14 @@ fixed here:
 1. **Uncertainty-integrated re-prediction.** For every fitted method,
    replace the plugin prediction p = F(ĝ) with the posterior-predictive-
    style p̃ = E_ε[F(ĝ + ε)], ε ~ N(0, SE_A² + SE_B²), where SE are the
-   per-model Fisher standard errors computed from the SAME TRAINING fit
-   that produced ĝ (machinery: `scripts/12`'s `fisher_se`; the integral is
-   evaluated numerically on the link's gap grid). This shrinks
+   **bootstrap-calibrated** per-model standard errors from the SAME
+   TRAINING fit that produced ĝ: Fisher SEs divided by the measured
+   Fisher-to-bootstrap ratio 0.80 (validated cross-check vs the published
+   bootstrap SDs, Spearman 0.983; machinery
+   `src/rq3_eval.py::fisher_se_calibrated`). Raw uncalibrated Fisher SEs
+   are run as a labeled sensitivity variant — calibration settled here,
+   before any real result could trigger this procedure. The integral is
+   evaluated numerically on the link's gap grid. This shrinks
    overconfident predictions more for steeper links and noisier models —
    exactly the mechanism World P2 exposed. Both methods get the identical
    correction; the entire pipeline (window table, pooled cluster bootstrap,
@@ -270,11 +286,23 @@ bootstrap, as expected). Real SEs: median 1.6–4.5 Elo-equivalent points.
 Monte-Carlo expected held-out delta under lattice-truth with real
 noise (results/tables/rq3_reversal_real_inputs.csv):
 
-| regime | truth u0.5855 | truth u1.2/skew6 (extreme) |
+| regime | truth u0.5855 | truth u1.2/skew6 (stress bound) |
 |---|---|---|
 | early 2023-08 | +0.27×MPD | +1.14×MPD |
 | mid 2023-12 | +0.14×MPD | +0.44×MPD |
 | full 2024-08 | +0.05×MPD | +0.12×MPD |
+
+These rows are **era-level**: the MC used every model's own SE but averaged
+the delta over pooled era votes (see §6.2 for the recent-entrant-stratum
+version, added at review).
+
+**Truth-scenario labels**: u0.5855 is the realistic scenario (the unit
+actually profiled from early real data). **u1.2/skew6 is a stress-test
+upper bound, not a realistic scenario**: skew_a=6 implies performance-noise
+skewness ≈0.89, near the skew-normal family's maximum (≈0.995), and it was
+selected as the family-maximum of the analytic sweep — nothing in the
+observed data motivates extreme skew. The single cells that clear MPD under
+this truth deserve correspondingly little weight.
 
 **The P2 reversal does not hold at real pooled noise** (real SEs are ~5-10×
 smaller than the synthetic world's): under lattice-truth the true model
@@ -291,6 +319,32 @@ equivalence, but by the effect-ceiling route, not the reversal route.* The
 overconfidence mechanism itself remains real and quantified — it bites at
 high per-model noise, i.e., the recent-entrant stratum, where §4.1's
 correction procedure applies with full force.
+
+## 6.2 Recent-entrant-stratum noise and achievable effect (added at review)
+
+The §6.1 table is era-level; the review asked for the analysis on the
+stratum's OWN noise. Recomputed (scripts/13) with bootstrap-calibrated SEs,
+restricting to votes involving ≥1 model that entered within 28 days of the
+checkpoint (stratum composition taken from the last 28 training days —
+strictly pre-test; no test-window data used):
+
+| regime | recent models | stratum votes (28d) | cohort med SE (Elo) vs era | truth u0.5855 | truth u1.2/skew6 (stress) |
+|---|---|---|---|---|---|
+| early 2023-08 | 3 | 1,439 | 17.7 vs 5.6 | **+1.58×MPD** | +2.38×MPD |
+| mid 2023-12 | 5 | 22,643 | 4.9 vs 4.4 | +0.24×MPD | +0.34×MPD |
+| full 2024-08 | 13 | 116,311 | 3.1 vs 2.7 | +0.11×MPD | +0.17×MPD |
+
+Reading, pre-committed: (i) recent-entrant cohorts were genuinely noisy
+only in the EARLY era (Arena's oversampling of entrants matured by 2024 —
+cohort SEs converge to era levels); (ii) under lattice-truth the stratum
+effect clears MPD only in early-2023 windows — where the stratum is also
+small (~1.4k votes/28d → per-window stratum N near the §5 minimum-N rule,
+so per-window power will be marginal and the pooled-stratum read carries
+the weight); (iii) even at 17.7-Elo cohort noise, calibrated real noise
+never reproduces the P2 reversal — under lattice-truth the direction stays
+lattice-positive, amplified by noise. Net: the only place a practically
+significant real effect is even available under in-family truth is the
+early-window recent-entrant stratum, and only toward the stress bound.
 
 ## Note for the paper (flagged at review; no action now)
 

@@ -29,6 +29,8 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from fit import VoteData, _rows_half_tie
+
 RECENT_DAYS = 28
 SECONDS_PER_DAY = 86400.0
 DECISIVE = ("model_a", "model_b")
@@ -189,3 +191,48 @@ def classify(wt: pd.DataFrame, pooled: dict, mpd: float = MPD_LOGLOSS,
         ev["verdict"] = "inconclusive"
         ev["note"] = "heterogeneous: effect size and consistency disagree"
     return ev
+
+
+# ---------------- Fisher SEs (section 4.1 machinery) ----------------
+
+# Fisher SEs underestimate the published bootstrap SDs by ~20% (validated
+# full-regime cross-check, scripts/12: spearman 0.983, median ratio 0.80).
+# The confound-correction procedure uses bootstrap-CALIBRATED SEs as primary
+# (divide Fisher by this factor); raw Fisher SEs are the labeled sensitivity
+# variant.
+FISHER_TO_BOOTSTRAP_CALIBRATION = 0.80
+
+
+def fisher_se(train: pd.DataFrame, link, theta: pd.Series) -> pd.Series:
+    """Per-model SEs from expected information of the half-tie objective.
+    I_ij = sum over weighted rows of F'(g)^2/(F(1-F)) with +/- design; gauge
+    fixed by pseudo-inverse (mean-zero convention, matches our fits)."""
+    data = VoteData.from_battles(train)
+    w_idx, l_idx, wts = _rows_half_tie(data, include_both_bad=True)
+    order = {m: i for i, m in enumerate(data.models)}
+    th = theta.reindex(data.models).to_numpy()
+    g = th[w_idx] - th[l_idx]
+    eps = 1e-4
+    F = np.clip(link.f_decisive(g), 1e-9, 1 - 1e-9)
+    dF = (link.f_decisive(g + eps) - link.f_decisive(g - eps)) / (2 * eps)
+    contrib = wts * dF ** 2 / (F * (1 - F))
+    n = len(data.models)
+    info = np.zeros((n, n))
+    np.add.at(info, (w_idx, w_idx), contrib)
+    np.add.at(info, (l_idx, l_idx), contrib)
+    np.add.at(info, (w_idx, l_idx), -contrib)
+    np.add.at(info, (l_idx, w_idx), -contrib)
+    # The information matrix has a KNOWN null space (the constant vector —
+    # translation gauge). Deflate it explicitly: add c*(11'/n) with huge c,
+    # whose inverse contributes a negligible 1/(c*n) to the diagonal and
+    # leaves all gauge-orthogonal directions exact. (A bare pinv inverted
+    # the numerically-near-null direction and produced garbage.)
+    c = 1e6 * np.trace(info) / n
+    cov = np.linalg.inv(info + c * np.ones((n, n)) / n)
+    return pd.Series(np.sqrt(np.clip(np.diag(cov), 0, None)), index=data.models)
+
+
+def fisher_se_calibrated(train, link, theta) -> pd.Series:
+    """Bootstrap-calibrated per-model SEs — the primary uncertainty input
+    for the section 4.1 confound procedure."""
+    return fisher_se(train, link, theta) / FISHER_TO_BOOTSTRAP_CALIBRATION

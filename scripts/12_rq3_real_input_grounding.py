@@ -34,7 +34,8 @@ from scipy.optimize import minimize_scalar
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fit import VoteData, fit_gaplink  # noqa: E402
+from fit import fit_gaplink  # noqa: E402
+from rq3_eval import fisher_se  # noqa: E402
 from lattice_link import LatticeLink, LogisticLink  # noqa: E402
 
 SEED = 20260711
@@ -99,34 +100,6 @@ CUTS = {
 }
 
 
-def fisher_se(train: pd.DataFrame, link, theta: pd.Series) -> pd.Series:
-    """Per-model SEs from expected information of the half-tie objective.
-    I_ij = sum over weighted rows of F'(g)^2/(F(1-F)) with +/- design; gauge
-    fixed by pseudo-inverse (mean-zero convention, matches our fits)."""
-    data = VoteData.from_battles(train)
-    from fit import _rows_half_tie
-    w_idx, l_idx, wts = _rows_half_tie(data, include_both_bad=True)
-    order = {m: i for i, m in enumerate(data.models)}
-    th = theta.reindex(data.models).to_numpy()
-    g = th[w_idx] - th[l_idx]
-    eps = 1e-4
-    F = np.clip(link.f_decisive(g), 1e-9, 1 - 1e-9)
-    dF = (link.f_decisive(g + eps) - link.f_decisive(g - eps)) / (2 * eps)
-    contrib = wts * dF ** 2 / (F * (1 - F))
-    n = len(data.models)
-    info = np.zeros((n, n))
-    np.add.at(info, (w_idx, w_idx), contrib)
-    np.add.at(info, (l_idx, l_idx), contrib)
-    np.add.at(info, (w_idx, l_idx), -contrib)
-    np.add.at(info, (l_idx, w_idx), -contrib)
-    # The information matrix has a KNOWN null space (the constant vector —
-    # translation gauge). Deflate it explicitly: add c*(11'/n) with huge c,
-    # whose inverse contributes a negligible 1/(c*n) to the diagonal and
-    # leaves all gauge-orthogonal directions exact. (A bare pinv inverted
-    # the numerically-near-null direction and produced garbage.)
-    c = 1e6 * np.trace(info) / n
-    cov = np.linalg.inv(info + c * np.ones((n, n)) / n)
-    return pd.Series(np.sqrt(np.clip(np.diag(cov), 0, None)), index=data.models)
 
 
 se_store: dict[tuple[str, str], pd.Series] = {}

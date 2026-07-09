@@ -567,3 +567,33 @@ number touched — training fits and hypothetical-truth expectations only):
 fitting. Awaiting user go-ahead.**
 
 ---
+
+## 2026-07-11 — RQ3 pre-commitment, second review round (items 1–4)
+
+- **SE calibration settled before first use**: §4.1's correction now
+  specifies bootstrap-calibrated SEs (Fisher/0.80, the measured ratio vs
+  published bootstrap SDs) as primary, raw Fisher as labeled sensitivity.
+  Machinery: `rq3_eval.fisher_se_calibrated` (fisher_se moved from
+  scripts/12 into src/rq3_eval.py as official §4.1 machinery).
+- **Regime-noise mapping corrected (user suspicion confirmed)**: the §6.1
+  reversal table was era-level (per-model SEs but pooled-vote averaging).
+  Recomputed on the actual 28-day recent-entrant cohort per checkpoint
+  (scripts/13; stratum composition from last 28 TRAINING days — strictly
+  pre-test): early-2023 cohorts were genuinely noisy (median SE 17.7 Elo vs
+  era 5.6) and small (3 models, 1.4k votes/28d); by 2024 Arena's entrant
+  oversampling matured (cohort 3.1 vs era 2.7 Elo). Stratum achievable
+  effect under lattice-truth: **+1.58×MPD early / +0.24 mid / +0.11 full**
+  (realistic truth); +2.38/+0.34/+0.17 (stress bound). No P2-style reversal
+  at any calibrated real noise level.
+- **u1.2/skew6 labeled a stress-test upper bound** (skewness ≈0.89, near
+  the skew-normal max; selected as sweep maximum, not from data).
+- **Pre-committed expectation paragraph added** to the framing (RQ1-style):
+  full-population equivalence expected; any genuine effect would most
+  plausibly appear in early-window recent-entrant strata, and only under
+  a more-skewed-than-typical generating process — recorded before real
+  fitting so stratified framing can't be read as post hoc.
+
+**Status: all review items done. NO real-data RQ3 numbers computed.
+Awaiting go-ahead.**
+
+---

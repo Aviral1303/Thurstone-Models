@@ -147,9 +147,16 @@ def fit_gaplink(
                    options={"maxiter": 5000, "ftol": tol, "gtol": 1e-10})
     # The interpolated log-curves are piecewise linear, so their gradients are
     # piecewise constant; L-BFGS line searches can end ABNORMAL at kinks even
-    # when the fit is done. Accept any termination whose gradient certifies
-    # convergence on the normalized objective (comparable fits that report
-    # CONVERGENCE stop at the same ~1e-5 gradient scale).
+    # when the fit is done. First remedy: restart from the stall point (fresh
+    # L-BFGS memory usually steps through the kink). Then accept any
+    # termination whose gradient certifies convergence on the normalized
+    # objective (comparable fits that report CONVERGENCE stop at the same
+    # ~1e-5 gradient scale).
+    restarts = 0
+    while not res.success and np.max(np.abs(res.jac)) > 1e-4 and restarts < 2:
+        res = minimize(negll, res.x, jac=True, method="L-BFGS-B",
+                       options={"maxiter": 5000, "ftol": tol, "gtol": 1e-10})
+        restarts += 1
     if not res.success and np.max(np.abs(res.jac)) > 1e-4:
         raise RuntimeError(
             f"MLE did not converge: {res.message} (max|grad|={np.max(np.abs(res.jac)):.2e})"

@@ -483,3 +483,49 @@ confirmed with user first, per instruction (framing fixed before further
 results are generated).**
 
 ---
+
+## 2026-07-11 — RQ3 pre-analysis commitment (no real-data numbers computed)
+
+Per user directive: full pre-commitment BEFORE any real calibration number
+exists. Deliverables: `logs/RQ3_PREANALYSIS.md` + synthetic validation
+(scripts/10, 11; src/rq3_eval.py; tests/test_rq3_classifier.py). Real-data
+RQ3 NOT run. Key decisions and what the synthetic work uncovered:
+
+- Design: rolling-origin on RQ1's 14 checkpoints (13 time-disjoint test
+  windows); decisive-only conditional scoring (tie prediction deferred to
+  RQ4 — BT has no native tie model); recent-entrant = first training battle
+  within 28 days before T_k, fixed now; primary lattice unit 0.5855
+  (look-ahead-free), 0.1/0.8 sensitivity.
+- MPD derived, not asserted: log-loss cost of a uniform 10-Elo gap error =
+  ½·0.25·(10·ln10/400)² = 4.14e-4 → **MPD = 4e-4 nats/vote** (Brier 2e-4).
+  Inference: window-cluster bootstrap, effective N = 13 windows (stated);
+  nested-training dependence flagged. Sign consistency bar 10/13.
+- Verdict rules (a/b1/b2/c) implemented + unit-tested in classify() before
+  outcomes exist; sub-practical directional leans get reported as such
+  inside "equivalence", never promoted, never hidden.
+- **Discovery 1 (analytic, scripts/11): in-family effect ceiling ≈1.56×MPD**
+  — no plausible lattice link can beat a best-fit logistic by more than
+  ~1.5×MPD at population level; realistic parameters 0.2–0.8×MPD.
+- **Discovery 2 (World P2): plugin-noise reversal.** In the MOST favorable
+  lattice world (strong link, correctly-specified fit), realized held-out
+  delta is NEGATIVE (−1.41×MPD): steeper links' plugin-MLE predictions are
+  overconfident under ability-estimation noise, costing more than BT's
+  shape misfit. Consequence pre-committed in §4: lattice_positive at ≥MPD
+  is close to theoretically unachievable here; if it happens anyway, the
+  steepness/regularization confound must be analyzed before any generative
+  claim — and equivalence is the a-priori expected verdict. Also
+  pre-committed: flattest-unit-wins ordering on real data would indicate
+  plugin-noise dominance, not tie-band truth.
+- **Synthetic gates all PASS** (exit 0): near-zero world → no call; 0.5×MPD
+  world → correct direction, CI>0, not promoted; ceiling world → ≥MPD
+  effect detected with correct sign (bt_positive, matching noise-free
+  truth); logistic world → equivalence, no false lattice call. Statistical
+  sensitivity demonstrated down to ~0.3×MPD true effects. 15 tests passing.
+- Machinery hardening en route: fit_gaplink restart-from-stall for L-BFGS
+  kink stalls; steep-skewed links need g_step=0.005 (real-data links don't,
+  remedy kept anyway).
+
+**Status: awaiting user review of the pre-commitment (esp. §4) before any
+real-data RQ3 fitting.**
+
+---

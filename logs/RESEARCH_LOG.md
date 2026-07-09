@@ -456,3 +456,30 @@ band drifts; their near-identical stability metrics show the RQ1 result is
 robust to that drift.
 
 ---
+
+## 2026-07-10 — RQ1 findings written; post-hoc entrant slice: nothing
+
+Per user review of the raw tables:
+
+- **Post-hoc entrant-intensity slice** (scripts/09) — explicitly NOT in the
+  pre-registered RQ1_SPEC.md, labeled post-hoc exploratory in the script,
+  the output table, and RQ1_FINDINGS.md. Result: nothing. All |Spearman| ≤
+  0.37 (descriptive p ≥ 0.22, n=13) for both covariates (n_entrants,
+  entrant_vote_share) against both per-method τ_b and the paired method
+  differences. Even stability itself isn't visibly entrant-modulated at
+  this n; calendar maturation dominates. Noted and moved on — does not
+  qualify the headline null.
+- **logs/RQ1_FINDINGS.md written** stating the null as a first-class,
+  well-powered result (5 better / 3 worse / 5 exactly tied, median diff
+  +0.00000, reproduced across 3 unit conventions × 2 horizons × 2 incumbent
+  sets); the secondary sample-size-governs-stability finding (τ_b window
+  range 0.968→0.997 vs between-method ≤0.007); and the fixed framing
+  paragraph tying to SCOPE_REFRAME.md — the paper is an empirical audit of
+  where the alternative does and doesn't measurably differ, RQ1's answer is
+  "it doesn't, here," reported first-class regardless of RQ3/RQ4 outcomes.
+
+**Status: RQ1 complete and written up. HOLDING before RQ3 — narrative to be
+confirmed with user first, per instruction (framing fixed before further
+results are generated).**
+
+---

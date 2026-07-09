@@ -20,7 +20,13 @@ KEEP = ["model_a", "model_b", "winner", "judge", "turn", "anony", "language", "t
 rows = []
 with open(RAW, "rb") as f:
     for rec in ijson.items(f, "item"):
-        rows.append({k: rec.get(k) for k in KEEP})
+        row = {k: rec.get(k) for k in KEEP}
+        # dedup_tag is used by LMSYS's own leaderboard pipeline to downweight
+        # duplicated prompts; keep both flags for faithful BT replication.
+        dt = rec.get("dedup_tag") or {}
+        row["dedup_sampled"] = bool(dt.get("sampled", False))
+        row["dedup_high_freq"] = bool(dt.get("high_freq", False))
+        rows.append(row)
 
 df = pd.DataFrame(rows)
 df["tstamp"] = pd.to_numeric(df["tstamp"], errors="coerce")

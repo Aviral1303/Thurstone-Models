@@ -111,3 +111,97 @@ choix doesn't ship it).
 **Status: Phase 0+1 complete. STOPPED, awaiting user review per ground rule 3.**
 
 ---
+
+## 2026-07-09 — Phase 1 review decisions (user)
+
+1. Commit Phase 0/1 (done; push blocked — machine credential
+   `aviralpoddar-gsmc` lacks write access to `Aviral1303/Thurstone-Models`).
+2. Sign convention must be pinned by unit tests, extended with the wrapper
+   test in Phase 3.
+3. **Matchup-aggregation plan REJECTED → direct per-vote likelihood.**
+   Rationale (recording for methodology section): windowed aggregation either
+   hands BT and Thurstone different-resolution data (unfair comparison) or,
+   applied symmetrically, throws away the sub-second timestamps we secured
+   specifically for RQ1. Instead: precompute p_win(Δθ), p_tie(Δθ) lookup
+   curves once via the forward Race/pricing machinery (pairwise races are
+   translation-invariant → strictly 1D in the ability gap), then fit
+   abilities by direct MLE over individual votes — exactly mirroring how
+   choix fits BT, same per-vote data for both models, only the link differs.
+   AbilityCalibrator's price-inversion path is NOT used for fitting (it's
+   built for continuous market odds, not sparse 0/1 votes).
+4. RQ2 gets a dedicated confound-aware design doc (event-study/DiD around
+   model-entry events, pooled across events) BEFORE implementation; doesn't
+   block Phase 2.
+5. RQ4 additions: (a) compare MLE-optimal Davidson ν's implied tie-band vs
+   the lattice unit's implied tie-band — divergence decides whether "no
+   extra parameter" is honest or relabeled; (b) explicit decision needed on
+   merging "tie" vs "tie (bothbad)" — conceptually different (equally good vs
+   equally poor); flag recommendation, don't silently pick.
+6. RQ1/RQ3 results must be reported both full-population and restricted to
+   models with ≥1000 votes (Gini 0.554 → thin-data models are noisy under
+   both methods).
+
+Phase 3 implementation HELD until RQ2 design doc reviewed + direct-likelihood
+approach validated on synthetic ground truth.
+
+---
+
+## 2026-07-09 — Phase 2: BT baseline replication — PASSED
+
+**Published target.** `elo_results_20240813.pkl` from the leaderboard HF
+space. Unpickling required stubbing plotly classes (embedded Figures were
+built with pre-6.0 plotly; `heatmapgl` no longer exists). Extracted
+`text/full/leaderboard_table_df`: 128 models, `rating_system="bt"`,
+last_updated 2024-08-12 09:20:51 PDT. Saved to
+`results/tables/published_bt_20240813.csv` (script 03).
+
+**Method.** Faithful port of fastchat's `compute_mle_elo` (script 04): BT MLE
+via weighted logistic regression; each decisive battle = weight 2 in its
+direction, each tie (both subtypes) = weight 1 in each direction; ratings =
+400/ln(10)·coef + 1000, anchored mixtral-8x7b-instruct-v0.1 = 1114. Battles
+truncated to the pickle's own last_updated_tstamp (our battle file runs one
+day later). One rename needed: battle log's `chatgpt-4o-latest` = published
+`chatgpt-4o-latest-2024-08-08`.
+
+**Results** (`results/tables/bt_replication_20240813.csv`):
+
+| variant | spearman | kendall | MAE (Elo pts) | max|Δ| |
+|---|---|---|---|---|
+| fastchat-LR, dedup_sampled | 0.99997 | 0.9988 | **0.18** | 2.95 |
+| fastchat-LR, all battles | 0.99907 | 0.9818 | 4.59 | 16.69 |
+| choix BT, decisive-only | 0.99894 | 0.9811 | 41.4 | 150.8 |
+
+- **Gating checkpoint PASSED**: with the `dedup_sampled` filter we reproduce
+  the published board to MAE 0.18 rating points, all 128 models covered.
+  Residual deviations concentrate in models that entered in the final weeks
+  (llama-3.1-8b, gemma-2-2b, athene-70b) — consistent with the one-day
+  snapshot mismatch. Conclusion: data pipeline is sound; the published
+  pipeline did use the dedup filter (4.6 MAE without it).
+- **choix cross-check**: rank order agrees (ρ=0.999) but decisive-only
+  likelihood shifts magnitudes badly in the tail (llama-13b off by 150 pts —
+  weak models live on "both bad" ties, dropping ties inflates their spread).
+  Lesson recorded: every BT baseline in later phases must model ties the
+  same way its comparator does; decisive-only fits are not interchangeable
+  with tie-aware fits.
+- First-fit bug worth remembering: my "simplified" one-row-per-direction LR
+  design collapsed to a single class (all Y=1) — sklearn rightly refused.
+  fastchat's paired Y=1/Y=0 rows with directional weights is the correct
+  encoding; kept faithful to it.
+
+**Sign-convention tests** (decision #2): `tests/test_sign_convention.py`,
+4 tests pinning the race-time (lower=better) convention + forward/inverse
+round-trip; extend with the sign-flip wrapper + hand-checked real-data subset
+in Phase 3. All passing.
+
+**RQ2 design doc** written (`logs/RQ2_DESIGN.md`), not implemented. Core
+reframe worth flagging: for pairwise battles BOTH BT and 2-entrant lattice-
+Thurstone are gap-link models, so pool-composition effects falsify both;
+the doc splits RQ2 into (a) proximity-DiD event study around entries with
+event fixed effects (identification from ability-proximity heterogeneity
+within events, not calendar time), and (b) a link-shape triple-additivity
+test. Synthetic-null + power validation specified before real outcomes are
+touched. Awaiting review.
+
+**Status: Phase 2 done, RQ2 design awaiting review, Phase 3 HELD.**
+
+---

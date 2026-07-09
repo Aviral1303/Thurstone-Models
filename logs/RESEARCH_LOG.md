@@ -205,3 +205,86 @@ touched. Awaiting review.
 **Status: Phase 2 done, RQ2 design awaiting review, Phase 3 HELD.**
 
 ---
+
+## 2026-07-09 — Phase 2 review decisions (user) + scope reframe
+
+- Phase 2 approved. **Standing rule from the choix lesson: every BT-vs-lattice
+  comparison must use identical tie treatment on both sides.** Phase 3 fit
+  must include ties fastchat-style, not decisive-only.
+- RQ2 design approved (RQ2a/RQ2b split confirmed) + one addition: model-family
+  clustering robustness (same-lab successors are ability-proximal for
+  non-context reasons). Added as §3.6 of RQ2_DESIGN.md: family map committed
+  before outcomes are loaded, family×proximity covariate, same-family
+  exclusion rerun, downgrade rule if the effect halves.
+- **Scope reframe** (logs/SCOPE_REFRAME.md): Arena is pairwise-only, so
+  Cotton's simultaneous multi-entrant field-coherence property is never
+  exercised. We test (1) global-refit stability of two gap-link models under
+  population growth (RQ1) and (2) link-shape/tie-mechanism comparisons
+  (RQ2b/RQ3/RQ4). Paper positioning must not claim validation of the
+  winner-of-many result; that needs listwise data which doesn't exist
+  publicly.
+- **Tie categories resolved (RQ4)**: "tie" = dead-heat category for the main
+  analysis; "tie (bothbad)" EXCLUDED from it (equally-good ≠ equally-poor;
+  dead-heat models closeness of draws, both-bad is an absolute-bar judgment).
+  Implemented as `include_both_bad` flag (default False) in src/fit.py so the
+  robustness rerun needs no rework. NB: the fastchat-equivalent half-tie mode
+  keeps pooling both tie types — that's part of replicating BT's treatment
+  faithfully (fastchat pools them); the tie-category distinction applies to
+  the NATIVE dead-heat likelihood.
+
+## 2026-07-09 — Phase 3: fitting machinery + synthetic validation PASSED
+
+**Modules.**
+- `src/lattice_link.py` — LatticeLink: 1D curves W(g), D(g), L(g) computed
+  once from the forward Race/pricing machinery (801 gap points, 0.07s);
+  higher-is-better sign flip happens exactly here and nowhere else.
+  Curves verified: exact symmetry W(g)=L(−g), D even, W strictly increasing,
+  W+D+L=1 to 1e-8. Two likelihood views: decisive link F=W/(W+L) (for the
+  fastchat-equivalent mode — BT's logistic has no tie mass, so the fair
+  comparison must condition on decisive outcomes) and native trinomial
+  (W,D,L) for RQ4. LogisticLink in the same interface for cross-checks.
+- `src/fit.py` — per-vote MLE, L-BFGS with analytic gradients via lookup
+  interpolation; modes half_tie / native; include_both_bad flag per the tie
+  decision; objective normalized by total weight (conditioning).
+- `src/bt_baseline.py` — compute_mle_elo extracted from script 04 (shared by
+  replication + synthetic checks); defaults stay faithful to fastchat
+  (tol=1e-6), cross-checks pass tighter tolerances. Script 04 re-run after
+  refactor: MAE 0.18324 unchanged.
+
+**Synthetic validation** (`scripts/05_synthetic_validation.py`, seed
+20260709, 30 models, θ*~N(0,1), 200k votes, Arena-like Dirichlet exposure
+skew; all pre-stated thresholds met — `results/tables/synthetic_validation.csv`):
+
+| check | spearman | pearson | RMSE | note |
+|---|---|---|---|---|
+| A lattice-gen → native fit | 0.9916 | 0.9950 | 0.092 raw | ≤0.10 ✓ |
+| B lattice-gen → half-tie fit | 0.9964 | 0.9960 | 0.080 | slope 1.000 |
+| C BT-gen → our logistic vs choix | 0.9982 | — | max|Δθ| 3.1e-4 | ≤1e-3 ✓ |
+| D BT+30% random ties → ours vs fastchat LR | — | — | max resid 0.012 Elo pts | ≤0.1 ✓ |
+| E BT-gen → lattice fit (misspec) | 0.9987 | 0.9974 | 0.065 scaled | slope 1.174 |
+
+Debugging notes for the record: (1) initial check C failed at 8e-3 — cause
+was optimizer slack on both sides (choix default tol=1e-5; our unnormalized
+objective stopping on ftol), not an objective mismatch; fixed by comparing
+pure MLEs with tight tolerances. (2) check D initially failed at 0.24 Elo
+pts — sklearn LR tol=1e-6 slack in the fastchat port; parametrized tol,
+defaults unchanged. (3) check E's slope 1.17 is the expected logit-vs-
+probit-like scale factor under misspecification (ranks unaffected), noted so
+nobody reads raw-scale differences as a finding later.
+
+**Observation for RQ4 (not tuned, just noted):** with default unit=0.1 the
+lattice dead-heat mass at gap 0 is 2.8%, far below Arena's 18.7% quality-tie
+share. The native tie band will need a much coarser unit (or the tie-band
+comparison will simply show this) — exactly what the Davidson-ν vs lattice-
+unit analysis is for.
+
+**Sign tests extended** (decision #2 complete): 7 tests passing, including
+the hand-checked real subset (gpt-4-1106-preview vs vicuna-13b, 318 battles,
+197/42/79 — counts pinned in the test) through both fit modes. NB this
+touches one real pair purely as a sign check, per the decision; no research
+fitting on real data has been run.
+
+**Status: synthetic validation PASSED. STOPPED before real-data fitting,
+awaiting go-ahead.**
+
+---

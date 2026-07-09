@@ -24,7 +24,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from scipy.stats import kendalltau, pearsonr, spearmanr
-from sklearn.linear_model import LogisticRegression
 
 ROOT = Path(__file__).resolve().parents[1]
 SEED = 20260709
@@ -45,51 +44,9 @@ battles_all = battles_all.assign(
 print(f"battles at/before published cutoff ({meta['last_updated_datetime']}): {len(battles_all):,}")
 
 
-def compute_mle_elo(df: pd.DataFrame, scale=400, base=10, init_rating=1000,
-                    anchor=("mixtral-8x7b-instruct-v0.1", 1114.0)) -> pd.Series:
-    """Faithful port of fastchat's compute_mle_elo."""
-    ptbl_a_win = pd.pivot_table(df[df["winner"] == "model_a"], index="model_a",
-                                columns="model_b", aggfunc="size", fill_value=0)
-    ptbl_tie = pd.pivot_table(df[df["winner"].isin(["tie", "tie (bothbad)"])],
-                              index="model_a", columns="model_b", aggfunc="size", fill_value=0)
-    ptbl_tie = ptbl_tie.add(ptbl_tie.T, fill_value=0)
-    ptbl_b_win = pd.pivot_table(df[df["winner"] == "model_b"], index="model_a",
-                                columns="model_b", aggfunc="size", fill_value=0)
-    ptbl_win = (ptbl_a_win.mul(2).add(ptbl_b_win.T.mul(2), fill_value=0)
-                .add(ptbl_tie, fill_value=0).fillna(0))
-    # align to square
-    all_models = ptbl_win.index.union(ptbl_win.columns)
-    ptbl_win = ptbl_win.reindex(index=all_models, columns=all_models, fill_value=0)
-
-    models = pd.Series(np.arange(len(all_models)), index=all_models)
-    p = len(models)
-    X, Y, W = [], [], []
-    logb = math.log(base)
-    # fastchat structure: for each ordered pair, one Y=1 row weighted by
-    # "a beats b" count and one Y=0 row weighted by "b beats a" count.
-    for m_a in all_models:
-        for m_b in all_models:
-            if m_a == m_b:
-                continue
-            w_ab = float(ptbl_win.loc[m_a, m_b])
-            w_ba = float(ptbl_win.loc[m_b, m_a])
-            if w_ab == 0 and w_ba == 0:
-                continue
-            x = np.zeros(p)
-            x[models[m_a]] = +logb
-            x[models[m_b]] = -logb
-            X.append(x); Y.append(1.0); W.append(w_ab)
-            X.append(x); Y.append(0.0); W.append(w_ba)
-    X = np.asarray(X); Y = np.asarray(Y); W = np.asarray(W)
-    keep = np.asarray(W) > 0
-    X, Y, W = X[keep], Y[keep], W[keep]
-    lr = LogisticRegression(fit_intercept=False, C=np.inf, tol=1e-6, max_iter=1000)
-    lr.fit(X, Y, sample_weight=W)
-    elo = scale * lr.coef_[0] + init_rating
-    s = pd.Series(elo, index=models.index)
-    if anchor[0] in s.index:
-        s += anchor[1] - s[anchor[0]]
-    return s.sort_values(ascending=False)
+import sys
+sys.path.insert(0, str(ROOT / "src"))
+from bt_baseline import compute_mle_elo  # noqa: E402
 
 
 def compare(ours: pd.Series, name: str) -> dict:

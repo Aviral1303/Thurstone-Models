@@ -111,6 +111,24 @@ structure, breaks proximity), which is the sharper null anyway.
 5. **Multiple testing**: one primary estimand (β₁, measure ii, w=14,
    decisive-only). Everything else labeled sensitivity/exploratory in the
    paper. No outcome data gets loaded until this doc is approved.
+6. **Model-family clustering** (added at review, 2026-07-09): a newly
+   entered model that is ability-proximal to a pair is disproportionately
+   likely to be a same-lab successor of one of its members (a GPT-4 variant
+   entering near other GPT-4 variants). Family effects — shared users
+   switching to the successor, correlated prompt styles, press attention to
+   the lab — could load on prox(C; A,B) through channels unrelated to
+   context-dependent judging. Mitigations, all pre-specified:
+   (a) build a model→family map (lab + lineage, e.g. `gpt-4*` OpenAI,
+       `claude-*` Anthropic, `llama-*` Meta + finetunes mapped to their base
+       lab), committed to the repo before outcome data is loaded;
+   (b) add a same-family indicator, 1{family(C) ∈ {family(A), family(B)}},
+       as a covariate interacted with proximity in the DiD spec;
+   (c) rerun the primary spec excluding all (pair, event) cells where C
+       shares a family with A or B (same-family exclusion);
+   (d) report β₁ under (b) and (c) alongside the primary; if the proximity
+       effect shrinks by more than half or loses significance under the
+       exclusion, the headline claim must be downgraded to "cannot separate
+       context effects from family-succession dynamics."
 
 ## 4. Validation before touching real outcomes
 

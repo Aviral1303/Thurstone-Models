@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Data — raw data is large and re-downloadable; keep processed artifacts small & tracked selectively
+data/raw/
+data/processed/*.parquet
+data/processed/*.csv
+data/processed/*.jsonl
+
+# Vendored upstream repo (cloned, not ours)
+vendor/thurstone/
+
+# OS
+.DS_Store
+
+# Secrets
+.env
+kaggle.json
+.claude/settings.local.json

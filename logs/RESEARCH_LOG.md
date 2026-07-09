@@ -597,3 +597,65 @@ fitting. Awaiting user go-ahead.**
 Awaiting go-ahead.**
 
 ---
+
+## 2026-07-12 — RQ3 REAL-DATA RESULTS (run exactly per pre-registration)
+
+Pooling spec §5.1 finalized and pushed first (noise-based bins from
+per-checkpoint cohort-SE ratios, scripts/14; IV weights within bins; min-N
+500/window, 1,500/bin). Then scripts/15: 13 windows × (BT + 3 lattice
+units), 484,599 scoreable decisive test votes total. Tables:
+results/tables/rq3_*.csv.
+
+**Full-population verdicts (pre-committed classifier): INCONCLUSIVE at all
+three units.** Pooled (vote-weighted, §3): +0.25×MPD (u0.5855) with CI
+(−0.17, +1.22)×MPD — the CI straddles +MPD. Structure behind it: **11–12 of
+13 windows show tiny BT-leaning deltas** (−0.01 to −0.6×MPD), and ONE
+window (2023-11-30) is +5.8×MPD, dragging the vote-weighted pooled mean
+positive against the sign pattern.
+
+**Post-hoc diagnostic (labeled, no re-verdict): the outlier is a single
+cold-start event.** ~80% of the 2023-11-30 window's total delta traces to
+pairs involving pplx-7b-online (+pplx-70b-online), which entered with **2
+training votes**. BT extrapolated it to mid-table (+0.432); the lattice's
+steeper link — which needs smaller gaps for the same win rates, i.e.,
+implicit shrinkage — kept it at +0.004. The model was then mass-sampled in
+December and performed poorly; BT paid ~68 nats over the window. This is
+the §6.1/6.2 steepness mechanism appearing in ESTIMATION form (shrinkage),
+not the prediction-overconfidence form — and it favored the lattice, once,
+by a lot, in exactly one cold-start window.
+
+**Strata (pre-committed reads):**
+- Recent stratum, IV-pooled across all windows: sub-practical BT lean with
+  CI excluding 0 at every unit (u0.5855: −0.12×MPD, CI (−0.18, −0.06)) →
+  per §4.2: "practically equivalent despite a detectable directional lean
+  (BT)". Note the pre-committed weightings diverge instructively: IV
+  pooling downweights the cold-start window (huge per-vote variance), so
+  the stratum read is BT-leaning while vote-weighted full-pop is dragged
+  lattice-positive by the same window.
+- High-noise bin, recent stratum (the ONE place §6.2 said a real lattice
+  effect could appear, predicted +1.58×MPD under lattice-truth): measured
+  **−0.50×MPD, CI (−1.10, −0.06)** — CI-bearing (n=4,488) and negative.
+  Evidence against lattice-truth in its best-case location.
+- All other bin×stratum cells: between −0.5 and +0.05×MPD, none clearing
+  MPD in either direction.
+
+**Reliability diagnostic:** slopes ≈1.455 for ALL four models — everything
+is systematically UNDERconfident on next-month data by the same large
+margin (true outcome logits ~1.45× predicted). Shared nonstationarity/
+pool-maturation dwarfs any link-shape difference; between-method
+calibration differences are second-order against it.
+
+**Operational fact (pre-committed to report):** 25–75% of decisive test
+votes per window were unscoreable (a brand-new model with zero training
+votes on one side) — cold-start coverage, not model choice, is the binding
+constraint on next-month predictability.
+
+**§4.1 correction: NOT triggered** (no positive verdict fired).
+
+**What would resolve the inconclusive (§4c obligation):** the verdict
+hinges on one cold-start event. A minimum-training-votes scoring filter
+(e.g., exclude votes where either model has <30 training votes) would
+resolve it — NOT run, since it is not pre-registered; proposed to the user
+as a labeled post-hoc sensitivity, RQ1-entrant-slice style.
+
+---

@@ -69,6 +69,18 @@ data — the unit plays exactly the role ν plays. What remains testable:
   convention — unit 0.800 (the full-data profile MLE) everywhere, with
   unit 0.1 as a sensitivity rerun of headline RQ1 metrics.
 
+## Known caveat: non-stationary tie propensity (added 2026-07-10)
+
+Quality-tie share drifts substantially over the data period (13.1% in the
+first 3 months → 20.45% full-period, non-bothbad denominator), and the
+profile-fitted unit tracks it (0.5855 on the first 3 months vs 0.8002
+full-sample). **A single dataset-wide fitted unit — and equally a single
+dataset-wide Davidson ν — is therefore averaging over a non-stationary
+quantity.** Any RQ4 comparison on pooled data compares two averaged
+parameters; both models are misspecified in the same direction. Not resolved
+here; must be acknowledged in the RQ4 write-up, and time-sliced tie-band
+fits are the natural extension if RQ4's pooled results look sensitive to it.
+
 ## Dependencies
 
 - Davidson-BT MLE implementation (small custom scipy; not yet written).

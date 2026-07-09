@@ -47,12 +47,12 @@ votes_per_model = pd.concat([battles["model_a"], battles["model_b"]]).value_coun
 
 # ---- side-by-side half-tie fits (identical treatment, only the link differs)
 t0 = time.time()
-theta_bt = anchor(fit_gaplink(battles, LogisticLink(), mode="half_tie"))
+theta_bt = anchor(fit_gaplink(battles, LogisticLink(), mode="half_tie", include_both_bad=True))
 print(f"BT (logistic) fit: {time.time()-t0:.1f}s, {len(theta_bt)} models")
 
 t0 = time.time()
 lat_link_default = LatticeLink()  # unit 0.1; insensitivity verified below
-theta_lat = anchor(fit_gaplink(battles, lat_link_default, mode="half_tie"))
+theta_lat = anchor(fit_gaplink(battles, lat_link_default, mode="half_tie", include_both_bad=True))
 print(f"lattice fit: {time.time()-t0:.1f}s, {len(theta_lat)} models")
 
 fits = pd.DataFrame({
@@ -113,7 +113,7 @@ prof["fitted_unit"] = best_u
 prof.to_csv(ROOT / "results" / "tables" / "unit_profile_real_20240814.csv", index=False)
 
 # ---- verify half-tie fit is insensitive to unit (claimed in RQ4_DESIGN.md)
-theta_lat_fitu = anchor(fit_gaplink(battles, link_fit, mode="half_tie"))
+theta_lat_fitu = anchor(fit_gaplink(battles, link_fit, mode="half_tie", include_both_bad=True))
 common = theta_lat.index
 sp_u = spearmanr(theta_lat.reindex(common), theta_lat_fitu.reindex(common)).statistic
 max_shift = float((theta_lat.reindex(common) - theta_lat_fitu.reindex(common)).abs().max())

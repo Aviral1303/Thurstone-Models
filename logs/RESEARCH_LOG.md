@@ -389,3 +389,70 @@ paired per-window method comparison with sign-consistency headline and
 full-table transparency. **Awaiting go-ahead before running.**
 
 ---
+
+## 2026-07-10 — RQ1 executed (after spec approval + 0.5855 variant added)
+
+**Bug caught by the validation track before it contaminated anything.** First
+run's BT-era validation MAEs came out 13–19 Elo pts instead of the ~0.2
+expected from Phase 2. Cause: fastchat's compute_mle_elo POOLS both tie
+labels into the half-tie weighting, but fit_gaplink defaults
+include_both_bad=False and scripts 07/08 never overrode it — our fits
+silently dropped the 17% both-bad votes. Synthetic check D never caught it
+because that world only emitted 'tie' labels. The internal BT-vs-lattice
+comparison was still fair (identical data both sides) but deviated from the
+documented fastchat-equivalence requirement. Fixed: half_tie fits now pass
+include_both_bad=True everywhere; regression test added
+(tests/test_fastchat_equivalence.py — mixed-label synthetic must match
+compute_mle_elo AND must diverge without the flag; 10 tests passing).
+Native-mode RQ4 tie category decision unaffected (dead-heat = 'tie' only).
+
+**Consistency gate re-run with corrected treatment (scripts/07):** improved —
+Spearman 0.999978 (was 0.99993), Kendall 0.99927, max rank move 2, mean
+0.047. Unit-insensitivity of half-tie ranks re-confirmed (0.999933); unit
+0.1→0.8 magnitude rescale now max|Δθ|=0.254.
+
+**Validation track (14 snapshots, 2023-08 → 2024-08):**
+- Online-Elo era (pre-2023-12, rating_system unlabeled): Spearman 0.90–0.97,
+  MAE 20–25 — expected methodological mismatch, labeled approximate-only.
+- BT era, era-appropriate filter: **MAE 0.18–1.01, Spearman ≥0.9986 on 10/10
+  snapshots** (worst: 20240403 at MAE 2.26 — noted, uninvestigated).
+- **Dedup epoch mapped empirically**: no_dedup matches better for every
+  snapshot 2023-12-06 → 2024-05-01 (MAE 0.27–2.26 vs dedup 2.4–4.0); dedup
+  matches better from 2024-06-02 onward (0.18–0.46 vs 3.9–4.1). Production
+  dedup switched on between 2024-05-01 and 2024-06-02 — consistent with
+  LMSYS's public timeline. RQ1 experiment track itself stays uniformly
+  dedup_sampled (declared convention; the validation demonstrates the
+  pipeline reproduces production under either filter).
+
+**RQ1 experiment (14 checkpoints, 4 methods, δ∈{1,3}, both incumbent sets,
+both alignments — full tables in results/tables/rq1_*.csv):**
+
+Headline (incumbents ≥1000 votes, δ=1, across 13 windows):
+
+| method | mean τ_b | mean spearman | mean\|Δθ\|_med (Elo-eq) | p95 (Elo-eq) |
+|---|---|---|---|---|
+| BT | 0.98358 | 0.99816 | 1.77 | 6.22 |
+| lattice u0.1 | 0.98434 | 0.99829 | 1.73 | 6.14 |
+| lattice u0.5855 | 0.98374 | 0.99838 | 1.74 | 6.18 |
+| lattice u0.8 | 0.98379 | 0.99818 | 1.74 | 6.13 |
+
+Paired per-window differences (lattice u0.1 − BT): Kendall better in 5/13
+windows, worse in 3, EQUAL in 5; median difference +0.00000. Magnitude
+smaller in 7/13; median −0.02 Elo-eq pts. δ=3: better in 5/11, median
++0.00000. Same picture at u0.5855 and u0.8, and for the all-models
+incumbent set. frac_move_gt5 = 0 in every window for every method.
+
+**Face-value reading (pre-interpretation, for review): a null.** Under
+identical data, tie treatment, anchoring, and per-vote MLE machinery, the
+lattice link's refit stability is indistinguishable from BT's — per-window
+differences are 1-2 orders of magnitude smaller than the window-to-window
+variation itself, and sign-inconsistent. No stability advantage for either
+method at either horizon. (Interpretation, framing, and whether to slice by
+entrant intensity: held for user review per instruction.)
+
+**Tie-propensity drift** (13.1% → 20.45%) is part of RQ1's write-up context
+per review directive — the three unit variants exist because the "right"
+band drifts; their near-identical stability metrics show the RQ1 result is
+robust to that drift.
+
+---

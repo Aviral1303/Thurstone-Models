@@ -40,9 +40,18 @@ convention-dependent, reported under the slope-matched scale defined in §4.
   - Lattice: LatticeLink(unit=0.1) — unit fixed ACROSS ALL checkpoints
     (pure convention, no look-ahead; see §4 for why the unit choice cannot
     matter for primary metrics and how magnitudes are made comparable).
-- Sensitivity rerun (magnitude metrics only): all lattice fits repeated at
-  unit=0.8. Framed strictly as robustness of the magnitude metric to the
-  band convention — NOT as competing estimates of a "real" unit.
+- Sensitivity reruns (magnitude metrics only): all lattice fits repeated at
+  unit=0.5855 and unit=0.8. Framed strictly as robustness of the magnitude
+  metric to the band convention — NOT as competing estimates of a "real"
+  unit. Rationale per 2026-07-10 review: 0.5855 (fitted on the first 3
+  months only) is both look-ahead-free and empirically closest to the true
+  early-window tie propensity; 0.1 is the arbitrary default; 0.8
+  (full-sample fit) is retained for robustness despite its look-ahead
+  because it bounds the plausible band range. **The three variants differ
+  because tie propensity genuinely drifts over the period (13.1% → 20.45%
+  quality-tie share) — this drift finding is part of RQ1's own write-up, as
+  required context for the magnitude metrics, not a cross-reference to
+  RQ4.**
 
 ## 2. Validation track (free check against production history)
 

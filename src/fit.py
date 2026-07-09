@@ -14,10 +14,15 @@ Two modes (Phase 3 decisions, logs/RESEARCH_LOG.md):
   Decisive vote -> log W(gap); tie vote -> log D(gap). Lattice only (the
   logistic link has no tie mass). Used for RQ4.
 
-Tie categories: `tie` is the dead-heat outcome. `tie (bothbad)` is EXCLUDED
-by default per user decision 2026-07-09 (dead-heat = draws close together;
-"both bad" = both below an absolute bar, unrelated to closeness). Pass
-include_both_bad=True to revisit as a robustness check.
+Tie categories (mode-dependent — be careful):
+- half_tie mode: fastchat's compute_mle_elo POOLS 'tie' and 'tie (bothbad)',
+  so faithful BT-equivalent fits must pass include_both_bad=True. (Caught by
+  the RQ1 validation track 2026-07-10: fitting with both-bad dropped puts
+  our BT ~13-19 Elo pts MAE from the published board vs ~0.2 when pooled.)
+- native mode (RQ4): `tie` is the dead-heat outcome; `tie (bothbad)` is
+  EXCLUDED by default per user decision 2026-07-09 (dead-heat = draws close
+  together; "both bad" = both below an absolute bar, unrelated to
+  closeness). include_both_bad=True is the robustness variant.
 
 Gauge: abilities are mean-centered (translation is unidentified).
 """

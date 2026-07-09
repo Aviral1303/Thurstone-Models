@@ -659,3 +659,35 @@ resolve it — NOT run, since it is not pre-registered; proposed to the user
 as a labeled post-hoc sensitivity, RQ1-entrant-slice style.
 
 ---
+
+## 2026-07-12 — RQ3 findings doc + post-hoc decomposition (user-reviewed
+framing)
+
+User review: INCONCLUSIVE verdict correct, classifier did its job; filter
+approved but reframed as a DECOMPOSITION answering a narrower question —
+never superseding the pre-registered headline. Cold-start/shrinkage event
+elevated to first-class finding (n=1 caveat mandatory); best-case-location
+negative result and reliability-slope/coverage findings stated first-class;
+sign convention stated explicitly in the findings doc.
+
+**Post-hoc <30-training-votes filter run (scripts/16, labeled)**: the
+outlier window collapses +5.8×MPD → +0.04×MPD, confirming it was entirely
+cold-start models. Filtered verdicts at all three units: **equivalence
+with sub-practical BT lean** (pooled −0.106/−0.141/−0.217×MPD at
+u0.5855/u0.1/u0.8, CIs inside the band and excluding 0; BT better in
+11–13/13 windows) — matching the expectation recorded before the run.
+Note the lean grows with unit steepness, consistent with the
+overconfidence face of the steep-link mechanism.
+
+**logs/RQ3_FINDINGS.md written** (RQ1_FINDINGS structure): §1 pre-registered
+inconclusive headline + sign convention; §2 CI-bearing strata (best-case-
+location −0.50×MPD against lattice-truth; recent-stratum sub-practical BT
+lean; weighting-divergence note); §3 generalizable findings (reliability
+slope 1.455 all methods + 25–75% unscoreable = coverage & drift bind, not
+link choice); §4 cold-start shrinkage case study (two faces of steep-link ×
+parameter-uncertainty, regime-dependent, n=1 caveat); §5 post-hoc
+decomposition with its separate-question framing; §6 scope.
+
+**Status: RQ3 complete and written up. Holding before RQ4 discussion.**
+
+---

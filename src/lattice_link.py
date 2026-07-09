@@ -101,6 +101,23 @@ class LatticeLink:
         logd, dlogd = self._log_curve_and_grad(self._D)
         return np.interp(g, self._gaps, logd), np.interp(g, self._gaps, dlogd)
 
+    def slope_at_zero(self) -> float:
+        """d/dg of the decisive link at g=0 (for slope-matched reporting).
+
+        NB: this is >= ~0.284 for every unit at scale=1 (the probit-like
+        limit) and increases with unit — the logistic's 0.25 is never
+        attainable by choosing the unit, so magnitude comparability is done
+        by reporting-scale rescaling (see slope_match_factor), the exact
+        analog of BT's 400/ln(10) display constant.
+        """
+        eps = 2 * self.g_step
+        return float((self.f_decisive(eps) - self.f_decisive(-eps)) / (2 * eps))
+
+    def slope_match_factor(self) -> float:
+        """Multiply fitted abilities by this to report them in slope-matched
+        units where dp/dtheta at a toss-up equals the logistic's 0.25."""
+        return self.slope_at_zero() / 0.25
+
 
 class LogisticLink:
     """BT/logit link in the same interface, for implementation cross-checks.
@@ -124,3 +141,9 @@ class LogisticLink:
         g = np.asarray(g, dtype=float)
         # log sigmoid(g) = -log(1+exp(-g)); d/dg = sigmoid(-g)
         return -np.logaddexp(0.0, -g), self.f_decisive(-g)
+
+    def slope_at_zero(self) -> float:
+        return 0.25
+
+    def slope_match_factor(self) -> float:
+        return 1.0

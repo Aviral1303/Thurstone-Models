@@ -341,3 +341,51 @@ treatment both sides; anchored gpt-4-0613=0):
 rolling-refit experiment, awaiting user review per instruction.**
 
 ---
+
+## 2026-07-10 — RQ1 spec + scale convention (post-review corrections)
+
+**Unit=0.800 for RQ1 rejected by user — look-ahead leak** (full-sample fit
+would inject month-16 information into month-3 snapshots; same discipline as
+the anchor-timing choice). Replaced per direction with a slope-matching
+convention, with one mathematical wrinkle discovered on the way:
+
+- **The logistic's toss-up slope (0.25) is unattainable by any unit.**
+  Measured slope of the lattice decisive link at Δθ=0: 0.2837 as unit→0
+  (probit-like limit), rising monotonically with unit (0.2899 at 0.1,
+  0.3370 at 0.8). Carving a wider dead-heat band always *steepens* the
+  conditional link. So "pick the unit that matches slopes" has no solution;
+  the intent is implemented the way 400/ln10 works for BT — a reporting
+  constant: **θ_matched = θ·(slope(0)/0.25)** via
+  `LatticeLink.slope_match_factor()` (test #8). Fits themselves use unit=0.1
+  fixed across all checkpoints; magnitude metrics reported slope-matched;
+  unit=0.8 rerun kept as robustness of the magnitude metric only.
+- **Secondary check → real finding.** Unit fitted on first 3 months only:
+  0.5855 vs full-sample 0.8002. Not close — and it tracks a genuine
+  composition drift: quality-tie share (non-bothbad denominator) rose from
+  13.1% (first 3 months) to 20.45% (full period). Tie propensity increased
+  substantially over the 16 months. Flagged as its own finding (feeds RQ4
+  interpretation; also reinforces unit-as-convention for RQ1).
+- **Tie-share numbers reconciled** (user sanity check): 18.69% (Phase 1
+  audit) = quality ties / ALL votes, full file. 20.45% (scripts/07) =
+  quality ties / non-bothbad votes, dedup file. Chain: 18.69% → 22.53%
+  (denominator excludes both-bad) → 20.45% (dedup filter removes
+  proportionally more quality ties — duplicated high-frequency prompts tie
+  more often). Both numbers correct; definitions now stated wherever used.
+- **Optimizer robustness fix** found by the first-3-months fit: L-BFGS can
+  end ABNORMAL at kinks of the piecewise-linear interpolated log-curves
+  even when converged (max|grad| 3.6e-5, same scale as fits that report
+  CONVERGENCE). fit_gaplink now accepts termination iff max|grad| < 1e-4 on
+  the normalized objective, else raises. All 8 tests pass.
+
+**RQ1 full spec written** (`logs/RQ1_SPEC.md`) per review directives:
+monthly cumulative checkpoints 2023-07-31 → 2024-08-12 (14); validation
+track against published elo_results pkls at their own timestamps (BT-era
+gated at Phase-2-level match; online-Elo era Spearman-only; dedup epoch
+mapped empirically by fitting both filter variants); incumbents = ≥1000
+cumulative votes at T (all-models table alongside); horizons δ=1 and δ=3
+months; rank metrics primary (unit-invariant, stated); slope-matched
+magnitude metrics secondary with anchor-aligned AND median-aligned variants;
+paired per-window method comparison with sign-consistency headline and
+full-table transparency. **Awaiting go-ahead before running.**
+
+---

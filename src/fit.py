@@ -140,8 +140,15 @@ def fit_gaplink(
 
     res = minimize(negll, np.zeros(n), jac=True, method="L-BFGS-B",
                    options={"maxiter": 5000, "ftol": tol, "gtol": 1e-10})
-    if not res.success and "REL_REDUCTION" not in str(res.message):
-        raise RuntimeError(f"MLE did not converge: {res.message}")
+    # The interpolated log-curves are piecewise linear, so their gradients are
+    # piecewise constant; L-BFGS line searches can end ABNORMAL at kinks even
+    # when the fit is done. Accept any termination whose gradient certifies
+    # convergence on the normalized objective (comparable fits that report
+    # CONVERGENCE stop at the same ~1e-5 gradient scale).
+    if not res.success and np.max(np.abs(res.jac)) > 1e-4:
+        raise RuntimeError(
+            f"MLE did not converge: {res.message} (max|grad|={np.max(np.abs(res.jac)):.2e})"
+        )
     theta = res.x - res.x.mean()
     series = pd.Series(theta, index=data.models).sort_values(ascending=False)
     if full_output:

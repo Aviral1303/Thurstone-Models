@@ -117,3 +117,20 @@ def test_wrapper_fit_real_subset_hand_checked(link):
     for mode in ("half_tie", "native"):
         theta = fit_gaplink(m, link, mode=mode)
         assert theta[a] > theta[b], f"sign inversion in {mode} mode"
+
+
+def test_slope_match_convention(link):
+    """Slope-matched reporting: lattice slope at 0 is above logistic's 0.25
+    for every unit (probit-like limit ~0.284, increasing in unit), so the
+    match factor must be > 1 and rescaled slope must equal 0.25."""
+    from lattice_link import LogisticLink
+
+    assert LogisticLink().slope_at_zero() == 0.25
+    s = link.slope_at_zero()
+    assert 0.28 < s < 0.30, f"unit=0.1 slope drifted: {s}"
+    assert link.slope_match_factor() == pytest.approx(s / 0.25)
+    coarse = LatticeLink(unit=0.8)
+    assert coarse.slope_at_zero() > s, "slope must increase with unit"
+    # rescaled: dp/dtheta_matched at 0 == 0.25 by construction
+    assert s / coarse.slope_match_factor() != 0.25  # factors are unit-specific
+    assert s / link.slope_match_factor() == pytest.approx(0.25)

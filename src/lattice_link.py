@@ -80,26 +80,41 @@ class LatticeLink:
         lo = self.p_loss(g)
         return w / np.maximum(w + lo, _EPS)
 
-    def _log_curve_and_grad(self, curve: np.ndarray):
-        logc = np.log(np.maximum(curve, _EPS))
-        dlogc = np.gradient(logc, self._gaps)
-        return logc, dlogc
+    def _log_spline(self, key: str, curve: np.ndarray):
+        """C1 cubic-Hermite spline of log(curve) with an exactly-consistent
+        derivative. Piecewise-linear values paired with smoothed gradients
+        (the previous implementation) are mutually inconsistent, which
+        stalls L-BFGS line searches at grid kinks (ABNORMAL terminations
+        seen in scripts/10 W2 and scripts/20); the spline removes the
+        pathology at the source."""
+        if not hasattr(self, "_splines"):
+            self._splines = {}
+        if key not in self._splines:
+            from scipy.interpolate import CubicHermiteSpline
+
+            logc = np.log(np.maximum(curve, _EPS))
+            dlogc = np.gradient(logc, self._gaps)
+            sp = CubicHermiteSpline(self._gaps, logc, dlogc)
+            self._splines[key] = (sp, sp.derivative())
+        return self._splines[key]
+
+    def _eval_log(self, key: str, curve: np.ndarray, g):
+        sp, dsp = self._log_spline(key, curve)
+        g = np.clip(g, self._gaps[0], self._gaps[-1])
+        return sp(g), dsp(g)
 
     def log_f_decisive(self, g):
-        """log F(g) and d/dg log F(g), interpolated (vectorized)."""
+        """log F(g) and d/dg log F(g) (vectorized, spline-consistent)."""
         w = self._W
         lo = self._W[::-1]  # p_loss on the same grid = W mirrored
         f = w / np.maximum(w + lo, _EPS)
-        logf, dlogf = self._log_curve_and_grad(f)
-        return np.interp(g, self._gaps, logf), np.interp(g, self._gaps, dlogf)
+        return self._eval_log("F", f, g)
 
     def log_p_win(self, g):
-        logw, dlogw = self._log_curve_and_grad(self._W)
-        return np.interp(g, self._gaps, logw), np.interp(g, self._gaps, dlogw)
+        return self._eval_log("W", self._W, g)
 
     def log_p_tie(self, g):
-        logd, dlogd = self._log_curve_and_grad(self._D)
-        return np.interp(g, self._gaps, logd), np.interp(g, self._gaps, dlogd)
+        return self._eval_log("D", self._D, g)
 
     def slope_at_zero(self) -> float:
         """d/dg of the decisive link at g=0 (for slope-matched reporting).

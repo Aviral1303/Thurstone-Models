@@ -722,6 +722,15 @@ stable models, ≥100 decisive/leg → 5 usable blocks, 786 triples.
   0.08) are the same order as the synthetic no-power spread → **no link
   can honestly be crowned**; pre-registered "whichever residualizes
   better" answer: indistinguishable.
+- **Convergence framing (added at review): this is a SECOND,
+  independently-derived effect-ceiling finding.** RQ3 bounded the
+  link-shape effect via held-out calibration (analytic KL ceiling
+  ≤0.23×MPD on empirical gaps); RQ2b now reaches the same conclusion via
+  a structurally different statistic (within-window triple-additivity
+  residuals — no held-out scoring, no MLE plugin, no time splits). Two
+  tests with different failure modes converging on "no discriminable
+  link-shape effect at real gap scales" is stronger evidence than either
+  alone; the paper should state this convergence explicitly.
 - The real finding: **all links show mean z² ≈ 1.2–1.3 > 1** — a modest
   additivity excess SHARED by every gap-link, driven by blocks 02 and 04
   (z²≈1.6–1.7; ~7–9% of triples with |z|>2 vs ~4.6% nominal). Consistent
@@ -744,5 +753,88 @@ parameter-drift trajectories and the tie-band answer.
 
 **RQ2a: HELD per user decision** — descope-vs-run to be weighed after RQ2b
 + RQ4-design review with the four convergent data points in hand.
+
+---
+
+## 2026-07-10 — RQ2b additivity-excess characterization (DESCRIPTIVE /
+EXPLORATORY — anomaly characterization, not a pre-registered test)
+
+scripts/19; tables results/tables/rq2b_excess_*.csv. Answers to the four
+review questions:
+
+1. **Which blocks.** block02 = 2023-08-22→2023-10-21 (z²=1.57, 14.3% of
+   triples |z|>2) and block04 = 2023-12-20→2024-02-18 (z²=1.65, 13.3%).
+   block05 (2024-02-18→04-18) moderate at 1.37; block03 and block06 clean
+   (1.05, 1.04).
+2. **Covariates: nothing checked explains it.**
+   - Dedup switchover (May–Jun 2024): overlaps ONLY block06 — the
+     cleanest block. Ruled out.
+   - Entry activity: excess blocks have FEWER entries (7/16) and LOWER
+     entrant vote share (0.62) than the clean/moderate late blocks
+     (21–22 entries, 0.89–0.91 share). If anything anti-correlated.
+   - English share is high (0.77–0.78) in blocks 02, 03, 04 alike — but
+     block03 is clean, so language mix doesn't separate excess from clean.
+   - Judges/votes-per-judge/tie-share/high-freq-share: all smooth
+     monotone-ish trends across blocks, none tracking the excess pattern.
+3. **Concentration: broad, with mild legacy-model tilt, no single driver.**
+   Excess triples involve the era's models roughly in proportion to their
+   triple counts; mildly overrepresented: gpt-3.5-turbo-1106 (6/16 of its
+   triples in excess), claude-1 (4/12), vicuna-13b (3/10), palm-2 (2/6).
+   gpt-4-0613 appears most in absolute terms (9 excess triples in block04)
+   but at near-base-rate share. Not a one-model artifact.
+4. **Half-block check: NOT within-block drift.** block04's excess persists
+   undiminished in both 30-day halves (H1 1.74, H2 1.54); block02's is
+   concentrated in its second half (H1 0.91, H2 2.04) — i.e., a
+   ~30-day-localized episode (late Sep–Oct 2023), not gradual drift
+   across the 60 days. (block05's moderate excess sits in H1, adjacent to
+   block04.) A drift artifact would have shrunk toward 1 in the halves.
+
+**Net descriptive characterization for the paper**: static gap-link models
+(all four links equally) show excess triple-additivity dispersion
+(mean z² 1.6–1.7, ~13–14% of triples |z|>2 vs 4.6% nominal), concentrated
+in two eras — late-Sep–Oct 2023 and Dec 2023–Feb 2024 — spread broadly
+across models with a mild legacy-model tilt, and NOT attributable to entry
+intensity, language mix, judge-population size, the dedup pipeline epoch,
+or within-window drift. Cross-link invariance means it is a property of
+the vote-generating process, not of any link choice. Cause unidentified;
+candidates (judge-population composition shifts within those eras,
+context/set effects, per-pair heterogeneity) would need RQ2a-style
+machinery to separate — this is the concrete content behind the
+named-open-question option.
+
+---
+
+## 2026-07-10 — RQ4 §6 synthetic gates PASSED; spline fix for optimizer
+
+**DavidsonLink implemented** (src/davidson_link.py; 5 unit tests): analytic
+trinomial gap link; verified that Davidson's conditional decisive link is
+EXACTLY logistic for any ν (so ν is purely tie mass — Davidson and vanilla
+BT coincide on decisive outcomes; clean structural fact for the paper).
+Trinomial eval in src/rq4_eval.py (Δ = ll_dav − ll_lat, positive = lattice
+better; MPD_RQ4 = 3e-4).
+
+**Optimizer pathology root-caused and fixed.** Repeated ABNORMAL L-BFGS
+stalls (scripts/10 W2, scripts/20; grad 1.2–2.4e-4 after restarts) were
+caused by LatticeLink returning piecewise-LINEAR log-curve values with
+SMOOTHED gradients — value and gradient mutually inconsistent, breaking
+line searches near kinks. Fixed at the source: C1 cubic-Hermite splines
+(value and derivative exactly consistent — centered-FD check 1e-5).
+Diagnostic dead-end recorded: a first "consistency check" using
+np.gradient on dense evaluations flagged errors ~1.0 that turned out to be
+genuine staircase noise in the lattice tail curves (W~1e-4 at |g|≈4.8,
+unit 0.8) — curve property, not implementation error; tiny-eps centered
+differences are the right check. All 20 tests pass; interpolation change
+is at 1e-6 level, no result materially affected.
+
+**Gates (scripts/20, results/tables/rq4_synthetic_gates.csv): ALL PASS.**
+W1 Davidson-truth: verdict davidson_positive, ν recovered ≤6.4% err;
+W2 lattice-truth: lattice_positive, unit ≤3.9% err; W3 realistic-gap
+matched world: true Δ −0.01×MPD, verdict equivalence; no false ≥MPD calls.
+Noted in the doc: W1/W2's ±4–6×MPD true effects are wide-gap
+machinery-power demonstrations (sd 1.0 ≫ real gaps); W3 at real-scale
+gaps confirms the ceiling and the equivalence expectation.
+
+**Status: RQ4 gates passed, doc updated. Awaiting user review before real
+RQ4 fitting. RQ2a decision pending with characterization in hand.**
 
 ---

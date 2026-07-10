@@ -1,0 +1,4 @@
+world,true_x_mpd,pooled_x_mpd,ci_lo_x_mpd,ci_hi_x_mpd,verdict,note,param_recovery_ok
+W1 davidson-truth nu0.5,-4.005461423160115,-3.7238783388206245,-4.405636048673184,-2.8806909938573284,davidson_positive,,True
+W2 lattice-truth u0.8,5.757145527189966,4.840778914473387,4.198327243937543,5.585835538467235,lattice_positive,,True
+"W3 realistic matched (davidson nu0.558, sd0.35)",-0.008419611006830974,-0.12837804120915305,-0.3140816297446196,0.02452130187966459,equivalence,,

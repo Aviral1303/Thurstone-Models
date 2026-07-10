@@ -1,10 +1,9 @@
 # RQ4 Pre-Analysis Commitment — Tie handling: lattice dead-heat vs Davidson-BT
 
-Status: PRE-COMMITTED 2026-07-10 (extends logs/RQ4_DESIGN.md). Design
-document ONLY: Davidson-BT is NOT yet implemented, no synthetic validation
-has run, and no real-data RQ4 number of any kind has been computed. The
-synthetic gates in §6 must pass, and this document must be reviewed, before
-real fitting.
+Status: PRE-COMMITTED 2026-07-10 (extends logs/RQ4_DESIGN.md). Davidson-BT
+implemented (src/davidson_link.py, unit-tested) and the §6 synthetic gates
+have PASSED (results in §6.1). No real-data RQ4 number of any kind has been
+computed. Awaiting user review before real fitting.
 
 Sign convention (same as RQ3): Δ = per-vote log-loss(Davidson-BT) −
 log-loss(lattice); positive ×MPD = lattice better.
@@ -114,6 +113,28 @@ Mirroring RQ3's structure; all through the real pipeline code:
    §5 ceiling — true difference ≈0.1×MPD): verdict must be equivalence,
    correct-direction sub-practical lean acceptable.
 4. No false ≥MPD call in any world whose true effect is below MPD.
+
+## 6.1 Synthetic gate results (scripts/20 — ALL PASS)
+
+| world | true Δ (×MPD) | realized (CI) | verdict | gate |
+|---|---|---|---|---|
+| W1 Davidson-truth ν=0.5, sd 1.0 | −4.01 | −3.72 (−4.41, −2.88) | davidson_positive | direction + ν recovery (max err 6.4%) ✓ |
+| W2 lattice-truth u=0.8, sd 1.0 | +5.76 | +4.84 (+4.20, +5.59) | lattice_positive | direction + unit recovery (max err 3.9%) ✓ |
+| W3 realistic matched, ν=0.558, sd 0.35 | −0.01 | −0.13 (−0.31, +0.02) | equivalence | ✓ |
+| G4 all worlds | — | — | no false ≥MPD call | ✓ |
+
+Interpretation note, recorded now: W1/W2's large true effects (±4–6×MPD)
+come from their WIDE ability spread (sd 1.0 → gaps far beyond the real
+median |gap| 0.31) where the tie-curve tails genuinely differ — they are
+machinery-power demonstrations, not realistic scenarios. W3, at real-scale
+gaps, lands at −0.01×MPD true — matching the §5 ceiling and confirming the
+a-priori equivalence expectation for real data. Parameter recovery gates
+applied to windows with ≥50k cumulative training votes (stated
+interpretation of §6's wording; smaller windows shown in the table file).
+Machinery note: gate runs exposed an optimizer pathology — piecewise-linear
+log-curve values paired with smoothed gradients are mutually inconsistent
+and stall L-BFGS line searches; fixed at the source with C1 cubic-Hermite
+splines (value/derivative exactly consistent; tests unchanged, 20 passing).
 
 ## 7. Outputs
 

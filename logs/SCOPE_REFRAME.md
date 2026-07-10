@@ -67,6 +67,36 @@ section, and the "future work" paragraph is the honest home for the
 winner-of-many story (e.g., synthetic listwise extensions, or non-Arena
 domains with true multi-entrant contests such as racing data).
 
+## RQ2a: DESCOPED (decision 2026-07-10, after RQ2b + excess characterization)
+
+RQ2a (the proximity-DiD event study around model entries, RQ2_DESIGN.md)
+is descoped from this paper. The design stays on record as
+designed-but-not-run. Two reasons, and the second is the decisive one:
+
+1. *Diminishing marginal value* (the anticipated reason): four convergent
+   results — RQ1's stability null, RQ3's practical equivalence away from
+   cold-start, RQ2b's link-indistinguishability, and RQ4's pre-registered
+   ceiling (≤0.31×MPD) — already establish that link-shape choice has no
+   measurable effect in this deployment. RQ2a's already-flagged weak
+   identification (scarce calendar-matched controls; reframed once during
+   design review) would spend its complexity re-confirming a
+   well-established picture.
+2. *The sharper reason — wrong instrument for the observed phenomenon*:
+   the one genuinely unexplained signal in this dataset (the RQ2b
+   additivity excess, logs/RQ2B_EXCESS_FINDING.md) is **anti-correlated
+   with entry activity**: the excess-dispersion blocks have FEWER model
+   entries (7 and 16) and LOWER entrant vote share (0.62) than the clean
+   blocks (21–22 entries, 0.89–0.91). RQ2a's identification strategy is
+   built entirely on entry-proximity contrasts — so whatever is producing
+   the excess, an entry-based DiD is structurally the wrong instrument to
+   find it, independent of the identification-power concerns. Running
+   RQ2a would neither explain the excess nor plausibly detect anything
+   the other four results missed.
+
+The excess itself is reported as a standalone descriptive finding and
+named open question (RQ2B_EXCESS_FINDING.md); the paper states the
+descope with this reasoning rather than silently dropping RQ2a.
+
 ## Practical consequences (already consistent with approved designs)
 
 - We stop describing the comparator as "the lattice model's field coherence"

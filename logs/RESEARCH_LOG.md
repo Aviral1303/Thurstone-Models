@@ -949,3 +949,24 @@ per actual evidence (§4); outlier correction + corrected cross-RQ
 statement (§5).
 
 ---
+
+## 2026-07-10 — Inventory accuracy pass (final housekeeping before outline)
+
+Programmatic verification of every quick-reference number in
+FINDINGS_INVENTORY.md against its source file. 11/14 exact; three
+corrections applied (inventory + findings docs where propagated):
+
+1. **Validation MAE range**: "0.18–1.01 (10 snapshots)" was wrong as
+   stated — the 2024-04-03 snapshot's best-filter MAE is 2.26 (it was
+   flagged as the uninvestigated outlier in the RQ1 entry but then
+   dropped from the range). Corrected to "0.18–1.01 on 9/10; outlier
+   2.26 at 2024-04-03".
+2. **Unscoreable range**: 25–75% → 24.8–75.8%; previously traceable only
+   to script stdout, now persisted as a data-only recomputation
+   (results/tables/rq3_unscoreable_by_window.csv).
+3. **Davidson tie-band width min**: 2.85 → 2.84 (rq4_tie_band_table.csv).
+
+**Standing by**: no new empirical work; awaiting outline-driven
+figure/table requests or fact-checks from the user + Aviral.
+
+---

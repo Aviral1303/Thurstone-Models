@@ -32,7 +32,7 @@ which is right.**
 - **Same at-zero mass, every window**: fitted P(tie|0) = 0.158–0.219
   (Davidson) vs 0.168–0.227 (lattice), within ~0.01 of each other in all
   13 windows.
-- **Different band shapes, every window**: half-max half-width ≈2.85–2.93
+- **Different band shapes, every window**: half-max half-width ≈2.84–2.93
   ability units (Davidson's slow sech-like decay) vs ≈1.67–1.68 (lattice's
   faster density-overlap decay) — a stable, ~1.7× structural difference.
 - **The data cannot pick a winner**: binned empirical tie-rate-vs-gap

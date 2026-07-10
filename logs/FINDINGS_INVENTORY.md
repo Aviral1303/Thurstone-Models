@@ -8,8 +8,9 @@ log, or a results table in the repo (commit 63fcc3d).
 Dataset: LMSYS clean_battle_20240814 (1,799,991 anony battles, 129 models,
 2023-04-24→2024-08-14; dedup_sampled subset 1,670,250 used for all fits).
 Pipeline validated against 10 published BT-era leaderboard snapshots at
-MAE 0.18–1.01 Elo pts (rq1_validation_published.csv); dedup switchover
-empirically dated May–Jun 2024. All experiments pre-registered
+MAE 0.18–1.01 Elo pts on 9/10 (one outlier: 2024-04-03 at MAE 2.26,
+flagged uninvestigated in the RQ1 log) (rq1_validation_published.csv);
+dedup switchover empirically dated May–Jun 2024. All experiments pre-registered
 (RQ1_SPEC.md, RQ3_PREANALYSIS.md, RQ4_PREANALYSIS.md, RQ2_DESIGN.md §5)
 with synthetic gates passed before real data; post-hoc analyses labeled.
 
@@ -95,7 +96,7 @@ MPD = 4e-4 nats/vote (10-Elo-error anchor).
   "practically equivalent despite a detectable directional lean (BT)."
 - **Generalizable findings:** reliability slope ≈1.455 for ALL four
   models (shared underconfidence on next-month votes;
-  rq3_reliability.csv); 25–75% of decisive test votes unscoreable
+  rq3_reliability.csv); 24.8–75.8% of decisive test votes unscoreable
   (cold-start coverage). Joint point: coverage and nonstationary drift
   bind next-month predictability; link choice does not.
 - **Cold-start shrinkage case study (n=1):** pplx-7b-online entered
@@ -129,7 +130,7 @@ MPD = 3e-4 nats/vote (1pp tie-probability error at 20% tie level).
   (rq4_outlier_decomposition.csv)
 - **Tie-band answer (the 5a question): DIVERGENT shapes the data cannot
   discriminate.** Same at-zero mass every window (P(tie|0) within ~0.01);
-  half-max half-widths ≈2.85–2.93 (Davidson) vs ≈1.67–1.68 (lattice)
+  half-max half-widths ≈2.84–2.93 (Davidson) vs ≈1.67–1.68 (lattice)
   ability units — stable ~1.7× structural difference; empirical decay
   lies between; bin RMS 0.0225 vs 0.0237; |ĝ|≳1.2 carries <10% of votes.
   (rq4_tie_band_table.csv, rq4_tie_curve_bins.csv)
@@ -192,7 +193,7 @@ MPD = 3e-4 nats/vote (1pp tie-probability error at 20% tie level).
 | quantity | value | source |
 |---|---|---|
 | BT replication vs published board | MAE 0.18 Elo pts, ρ=0.99997 | scripts/04, Phase 2 |
-| validation across eras | MAE 0.18–1.01 (10 BT-era snapshots) | rq1_validation_published.csv |
+| validation across eras | MAE 0.18–1.01 on 9/10 BT-era snapshots (outlier 2.26 at 2024-04-03) | rq1_validation_published.csv |
 | RQ1 median paired Δτ_b | +0.00000 (5/3/5 split) | rq1_metrics.csv |
 | tie-share drift | 13.1% → 20.45% | logs 2026-07-10 |
 | fitted tie params drift | ν̂ 0.376→0.559; û 0.594→0.803 | rq4_param_trajectories.csv |
@@ -200,8 +201,8 @@ MPD = 3e-4 nats/vote (1pp tie-probability error at 20% tie level).
 | RQ4 tie-mechanism ceiling | ≤0.31×MPD | rq4_tie_ceiling.csv |
 | RQ3 best-case-location | −0.50×MPD, CI (−1.10, −0.06) | rq3_bin_pooled.csv |
 | reliability slope, all methods | ≈1.455 | rq3_reliability.csv |
-| unscoreable test votes | 25–75%/window | rq3 window tables |
+| unscoreable test votes | 24.8–75.8%/window | rq3_unscoreable_by_window.csv |
 | RQ2b excess | z² 1.57/1.65, 13–14% \|z\|>2 | rq2b_excess_covariates.csv |
-| tie-band half-widths | 2.85–2.93 vs 1.67–1.68 | rq4_tie_band_table.csv |
+| tie-band half-widths | 2.84–2.93 vs 1.67–1.68 | rq4_tie_band_table.csv |
 | entanglement excess | ≈+2.2×MPD decisive LL | rq4_bothbad_entanglement.csv |
 | MPDs | RQ3 4e-4; RQ4 3e-4 nats/vote | pre-analysis docs |

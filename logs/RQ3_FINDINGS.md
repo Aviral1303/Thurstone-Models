@@ -65,9 +65,10 @@ margin (realized outcome logits ≈1.45× predicted). Whatever separates
 logit from lattice-probit link shapes is second-order against this shared
 nonstationarity/pool-maturation effect.
 
-**3b. Cold-start coverage is the binding constraint.** 25–75% of decisive
-test votes per window were unscoreable because one side had zero training
-votes (a brand-new model — see per-window counts in the window tables).
+**3b. Cold-start coverage is the binding constraint.** 24.8–75.8% of
+decisive test votes per window were unscoreable because one side had zero
+training votes (a brand-new model — per-window counts:
+results/tables/rq3_unscoreable_by_window.csv).
 Joint methodological point, stated plainly: **in a deployment of this
 shape, the binding constraints on next-month predictability are
 missing-data coverage and nonstationary drift, not the choice of link

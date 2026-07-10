@@ -111,6 +111,17 @@ to this case study's evidence for the estimation-side shrinkage face: two
 separate pieces of support for the same steep-link × parameter-uncertainty
 phenomenon, not one finding repeated.
 
+**Cross-RQ note (added after RQ4, 2026-07-10 — and corrected the same
+day):** RQ4's independent trinomial comparison is ALSO inconclusive due to
+an outlier in the same 2023-11-30→12-31 window — but decomposition
+(scripts/22 era diagnostics) shows RQ4's outlier is a DIFFERENT
+phenomenon: pplx pairs contribute −2.8% of that window's RQ4 delta; the
+driver there is tie-channel fit on near-peer pairs (RQ4_FINDINGS §5). An
+earlier draft of this paragraph claimed the same event drove both RQs;
+that was asserted before decomposition and is false. The shrinkage
+mechanism's evidence base is THIS case study alone (n=1), plus the
+structural analysis in the RQ3 pre-analysis — not two RQs.
+
 ## 5. Post-hoc decomposition: excluding extreme cold-start cases
 (NOT pre-registered; labeled per the RQ1-entrant-slice precedent)
 

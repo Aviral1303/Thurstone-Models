@@ -893,3 +893,59 @@ transition flagged to user per instruction (findings inventory + paper
 outline next, no fifth investigation without a deliberate decision).**
 
 ---
+
+## 2026-07-10 — RQ4 post-hoc round: A MATERIAL CORRECTION, entanglement
+diagnostic, findings doc
+
+**Correction (important).** My RQ4 report asserted the 2023-11-30 outlier
+was "the pplx cold-start event, now expressed through the trinomial
+channel" — asserted without decomposition, and the user's follow-up
+directive #1 built on it. The <30-votes filter (scripts/22 Part A)
+contradicted it: pplx votes are excluded by the filter yet the window's
+delta ROSE (+9.55→+11.5×MPD). Decomposition (scripts/23,
+rq4_outlier_decomposition.csv): **pplx pairs = −2.8% of the window delta;
+the actual driver is the tie channel on near-peer same-family pairs**
+(ties +407 nats lattice-better, mean +0.055/vote; decisive −301
+Davidson-better; top pairs gpt-4-0314↔gpt-4-1106-preview,
+gpt-4-0314↔gpt-4-0613, claude-1↔claude-2.1) — §2's band-shape divergence
+mattering once, in a window where votes concentrated on small-gap sibling
+pairs with a high tie rate. RQ3's and RQ4's outliers share a calendar
+window, NOT a mechanism. Consequences: (i) the shrinkage mechanism keeps
+exactly one empirical instance (RQ3, n=1) — RQ4 is NOT a second data
+point; (ii) the corrected cross-RQ statement (verdicts hostage to
+single-window episodes at sub-ceiling effect sizes, two different
+channels) replaces the one-mechanism version everywhere; (iii) both
+findings docs corrected inline with the error acknowledged. Also noted
+descriptively: the window abuts the Dec-2023→Feb-2024 additivity-excess
+era — shared "unusual era" background is a candidate, unverified.
+
+**Part A (labeled post-hoc)**: filtered verdict still inconclusive
+(+0.861×MPD, CI +0.017..+2.693) — unlike RQ3, the filter does not resolve
+RQ4's inconclusive (because the outlier isn't cold-start votes).
+
+**Part B (both-bad entanglement diagnostic, no new fitting decisions):**
+(a) the 1.4 grid ceiling WAS pre-specified (RQ4_DESIGN geomspace to 1.4)
+but never stress-tested at both-bad-scale mass (gates used ≤1.2, 10–20%
+ties). (b) Capacity is not the issue (unit 1.4 expresses 40% at-zero tie
+mass); the saturation is SHAPE-driven (narrow band must inflate at-zero
+mass to cover large-gap ties). (c) **Entanglement confirmed, qualified**:
+on identical held-out decisive votes, both-bad-variant fits degrade the
+lattice's decisive log-loss by +4.75×MPD (mean, 11 ceiling windows) vs
++2.50×MPD for the Davidson control (which isolates the common
+ability-refit effect; Davidson's ν provably never touches its decisive
+link) → lattice-specific excess ≈+2.2×MPD. The citable asymmetry:
+tie-mass capacity and decisive discrimination are ENTANGLED in the
+lattice's single-unit parameterization, orthogonal in Davidson's.
+Qualifications: modest, window-heterogeneous, boundary never
+stress-tested. The tie/both-bad category decision stands on its original
+conceptual reasoning, not on this result.
+
+**logs/RQ4_FINDINGS.md written** (RQ1/RQ3 template): inconclusive headline
+with corrected driver; divergent-but-indiscriminable tie-band shapes
+stated as the precise claim (§2); drift trajectories + three-way
+cross-validation (windowed û endpoints ≈ 0.5855/0.8002 earlier
+independent fits) as a methods-validity result (§3); entanglement addendum
+per actual evidence (§4); outlier correction + corrected cross-RQ
+statement (§5).
+
+---

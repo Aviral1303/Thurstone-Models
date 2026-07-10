@@ -1,0 +1,83 @@
+% "The Cost of a Steeper Link" — workshop-length paper.
+% Facts source of truth: logs/FINDINGS_INVENTORY.md @ repo commit 1e7c13d.
+%
+% FORMAT NOTE: no NeurIPS .sty is vendored in this environment and the
+% official style URL is not fetchable; per the paper-task spec this uses a
+% clean generic article class with NeurIPS-like dimensions (10pt, Times,
+% 5.5in x 9in text block). Swap the preamble block below for the venue
+% .sty once the target venue is fixed.
+
+\documentclass[10pt]{article}
+
+% ---- NeurIPS-like layout (generic-substitute preamble) ----
+\usepackage[verbose=true,letterpaper]{geometry}
+\geometry{textheight=9in,textwidth=5.5in,heightrounded}
+\usepackage{newtxtext,newtxmath}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\usepackage{booktabs,graphicx,amsmath} % amssymb omitted: newtxmath provides those symbols and clashes on \Bbbk
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\bibliographystyle{plainnat}
+
+\newcommand{\mpd}{\ensuremath{\times}MPD}
+
+\title{The Cost of a Steeper Link: Calibration, Stability, and Tie
+Mechanics in Large-Scale Pairwise Preference Ranking}
+
+\author{%
+  Aviral Poddar\thanks{Author list and affiliations placeholder — to be
+  finalized.}\\
+  \texttt{aviral@example.org}
+}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Large-scale preference leaderboards such as Chatbot Arena rank language
+models by maximum-likelihood Bradley--Terry (BT), inheriting the logistic
+link's independence-of-irrelevant-alternatives assumption over a comparison
+pool that never stops growing. We test whether a flexible Thurstonian
+alternative---a lattice-based model that on pairwise data reduces to a
+steeper, natively tie-aware gap link---measurably improves refit
+stability, held-out calibration, or tie handling on 1.67 million Arena
+votes spanning 129 models and sixteen months. Every comparison was
+pre-registered: effect-size thresholds derived before fitting, synthetic
+detection gates passed before real data, verdict criteria fixed in
+advance. We find no demonstrable advantage in either direction. Refit
+stability under population growth is statistically indistinguishable
+(median paired rank-correlation difference $+0.00000$ across thirteen
+month-over-month refits); two structurally different tests agree that link
+shape is not discriminable at the ability gaps real matchups occupy
+(analytic ceilings of $0.23$--$0.31\times$ our minimum practical
+difference); and the calibration and tie-mechanism comparisons both end
+\emph{inconclusive}, each dominated by a single-window episode rather than
+any systematic difference. Inside this null sit two structural findings: a
+steeper link's single tie parameter entangles tie mass with decisive
+discrimination, whereas Davidson's tie parameter is provably orthogonal to
+its logistic link; and under parameter uncertainty, steep links trade
+prediction-side overconfidence against an estimation-side shrinkage that
+once protected against a severe cold-start extrapolation error. One
+anomaly survives every attribution attempt: temporally localized excess
+dispersion under every link tested. Practically, cold-start coverage and
+nonstationary drift---not link choice---bind next-month predictability in
+deployments of this shape.
+\end{abstract}
+
+% ==================================================================
+% Sections to be added one at a time, each user-reviewed before the next:
+%   2. Introduction
+%   3. Related Work
+%   4. Data and Methods
+%   5. RQ1  Refit Stability            (Fig 1: rq1_metrics.csv)
+%   6. RQ2b Link Shape / Additivity    (Fig 2: rq2b_excess_covariates.csv)
+%   7. RQ3  Held-Out Calibration
+%   8. RQ4  Tie Mechanisms             (Fig 3: rq4_tie_curve_bins.csv + bands)
+%   9+ (spec pending from user)
+% ==================================================================
+
+\bibliography{refs}
+
+\end{document}

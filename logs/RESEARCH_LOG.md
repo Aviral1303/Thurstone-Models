@@ -676,8 +676,13 @@ cold-start models. Filtered verdicts at all three units: **equivalence
 with sub-practical BT lean** (pooled −0.106/−0.141/−0.217×MPD at
 u0.5855/u0.1/u0.8, CIs inside the band and excluding 0; BT better in
 11–13/13 windows) — matching the expectation recorded before the run.
-Note the lean grows with unit steepness, consistent with the
-overconfidence face of the steep-link mechanism.
+CORRECTION (2026-07-10 review round): the earlier note here and in the
+report claimed the lean "grows monotonically with unit steepness" — false;
+steepness order is u0.1 < u0.5855 < u0.8 (slopes 0.290/0.324/0.337) while
+leans are −0.141/−0.106/−0.217. The steepest unit does show the largest
+lean by a wide margin (suggestive of the overconfidence face) but the two
+shallow units are inverted; RQ3_FINDINGS §4 now states the qualified
+version.
 
 **logs/RQ3_FINDINGS.md written** (RQ1_FINDINGS structure): §1 pre-registered
 inconclusive headline + sign convention; §2 CI-bearing strata (best-case-
@@ -689,5 +694,55 @@ parameter-uncertainty, regime-dependent, n=1 caveat); §5 post-hoc
 decomposition with its separate-question framing; §6 scope.
 
 **Status: RQ3 complete and written up. Holding before RQ4 discussion.**
+
+---
+
+## 2026-07-10 — Review round: dose-response correction; RQ2b run; RQ4
+pre-analysis written; RQ2a HELD
+
+**Correction of my own prior claim.** The requested "monotone dose-response"
+sentence could not be written as requested: checking against slopes
+(0.290/0.324/0.337 for u0.1/u0.5855/u0.8) vs leans (−0.141/−0.106/−0.217),
+the pattern is NOT monotone — u0.1 and u0.5855 are inverted. My earlier
+report claimed monotonicity by reading the table in unit-label order; the
+user's instruction echoed that error. RQ3_FINDINGS §4 now carries the
+qualified version (steepest unit largest lean by a wide margin = suggestive
+of the overconfidence face; shallow-unit ordering within noise), with the
+correction noted inline.
+
+**RQ2b run as pre-registered** (scripts/17; RQ2_DESIGN §5). 60-day blocks,
+stable models, ≥100 decisive/leg → 5 usable blocks, 786 triples.
+- Synthetic calibration gates PASSED (true-link mean z²≈1.02–1.03) — but
+  the same check shows the four links differ by only ~0.01–0.04 in mean z²
+  in BOTH synthetic worlds: **the additivity test has essentially no
+  power to distinguish these links at real gap scales** (consistent with
+  the RQ3 effect ceiling; now demonstrated for RQ2b's statistic too).
+- Real data: mean z² = 1.20 (logit) / 1.23 (u0.5855) / 1.25 (u0.1) / 1.28
+  (u0.8); lattice lower in 1/5 blocks. Between-link differences (~0.03–
+  0.08) are the same order as the synthetic no-power spread → **no link
+  can honestly be crowned**; pre-registered "whichever residualizes
+  better" answer: indistinguishable.
+- The real finding: **all links show mean z² ≈ 1.2–1.3 > 1** — a modest
+  additivity excess SHARED by every gap-link, driven by blocks 02 and 04
+  (z²≈1.6–1.7; ~7–9% of triples with |z|>2 vs ~4.6% nominal). Consistent
+  with within-window drift / heterogeneity / genuine set effects straining
+  ANY static gap-link — the RQ2a-flavored phenomenon, visible without the
+  DiD machinery. Caveat: triples share legs; block-level reads only.
+
+**RQ4_PREANALYSIS.md written (doc only — Davidson NOT implemented, no
+synthetic run, no real data).** Key decisions: WINDOWED fitting on the
+RQ1/RQ3 grid with per-window profiled ν and unit (pooled-fit-with-caveat
+rejected: pooled tie parameters average the 13.1→20.45% drift and the
+caveat would do all the work); MPD_RQ4 = 3e-4 nats (1pp tie-probability
+error at the 20% tie level, derivation in doc); RQ3 classifier reused;
+tie-curve-shape grade + effective-tie-band (relabeling-vs-divergence)
+table pre-specified; synthetic gates specified (§6) to run after doc
+review. Grounding (scripts/18, empirical-gap boundary, no outcomes):
+**tie-mechanism ceiling ≤0.31×MPD in both truth directions** →
+equivalence a-priori expected; the informative outputs will be the
+parameter-drift trajectories and the tie-band answer.
+
+**RQ2a: HELD per user decision** — descope-vs-run to be weighed after RQ2b
++ RQ4-design review with the four convergent data points in hand.
 
 ---

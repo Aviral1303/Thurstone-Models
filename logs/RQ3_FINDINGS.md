@@ -95,6 +95,22 @@ regime; this single event (n=1 window, n=1 model) is suggestive that the
 shrinkage direction matters in genuine cold-start deployment — it is not
 proof of a general advantage.**
 
+The overconfidence face has a second, independent line of support in the
+§5 decomposition — with one honest qualification. The steepest link shows
+the largest pooled BT lean by a wide margin (u0.8, slope 0.337: −0.217×MPD
+vs −0.106/−0.141 for the two shallower units), directionally what the
+prediction-overconfidence mechanism predicts; but the pattern is **not
+strictly monotone in steepness** (u0.1, slope 0.290: −0.141 exceeds
+u0.5855, slope 0.324: −0.106), so this is suggestive dose-response
+evidence, not a clean gradient — the two shallow units differ by little
+in slope and their ordering is within noise. (An earlier summary of these
+results mis-stated the pattern as monotone by reading the table in
+unit-label order; corrected here.) Even so qualified, this is evidence for
+the prediction-side overconfidence face, distinct from and complementary
+to this case study's evidence for the estimation-side shrinkage face: two
+separate pieces of support for the same steep-link × parameter-uncertainty
+phenomenon, not one finding repeated.
+
 ## 5. Post-hoc decomposition: excluding extreme cold-start cases
 (NOT pre-registered; labeled per the RQ1-entrant-slice precedent)
 

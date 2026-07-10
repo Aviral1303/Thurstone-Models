@@ -1,0 +1,3 @@
+variant,pooled_x_mpd,ci_lo_x_mpd,ci_hi_x_mpd,n_lattice_better,n_davidson_better,verdict,note
+main_tie_only,0.8376471645493868,0.01650554205719279,2.5418967246522506,10,3,inconclusive,
+robustness_bothbad,1.1529188154127026,-2.569382589523546,3.7299247576207075,7,6,inconclusive,

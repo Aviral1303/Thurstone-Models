@@ -838,3 +838,58 @@ gaps confirms the ceiling and the equivalence expectation.
 RQ4 fitting. RQ2a decision pending with characterization in hand.**
 
 ---
+
+## 2026-07-10 — RQ4 REAL-DATA RESULTS (run exactly per pre-registration);
+RQ2a descoped; excess finding + paper notes written
+
+RQ2a descope written into SCOPE_REFRAME.md (sharpened instrument-mismatch
+reasoning); standalone RQ2B_EXCESS_FINDING.md; PAPER_NOTES.md seeded with
+the Davidson-decisive-link-is-logistic proof. Then scripts/21, both
+pre-committed variants. Tables: results/tables/rq4_*.csv.
+
+**Main variant (dead-heat = 'tie' only): INCONCLUSIVE** — pooled
++0.838×MPD, CI (+0.017, +2.542), 10/13 windows lattice-better. Same §4c
+structure as RQ3, and the SAME driver: 2023-11-30 (+9.55×MPD — the pplx
+cold-start window, now expressed through the trinomial channel) plus the
+small first window (+5.29×MPD, n=3.1k). Remaining 11 windows sit in
+±0.8×MPD. The verdict stands as pre-registered; no post-hoc filter run
+without approval (the RQ3-style <30-votes decomposition would be the
+obvious labeled follow-up).
+
+**Drift trajectories (first-class output): the tie-band drift is now
+quantified.** ν̂ rises 0.376→0.559 and û rises 0.594→0.803,
+near-monotonically, both tracking the quality-tie-share drift. Strong
+consistency check: the windowed û endpoints reproduce the two independent
+earlier profile fits (0.5855 on first-3-months data; 0.8002 full-sample)
+almost exactly.
+
+**Tie-band answer (the 5a question): DIVERGENT, not relabeled.** The two
+fitted mechanisms imply nearly identical at-zero tie mass every window
+(P(tie|0): 0.158–0.219 Davidson vs 0.168–0.227 lattice) but genuinely
+different band SHAPES: half-max half-width ≈2.85–2.93 ability units
+(Davidson, slow sech-like decay) vs ≈1.67–1.68 (lattice, faster
+overlap decay) — stable across all 13 windows. Empirical tie-rate-vs-gap
+bins: both models undershoot near toss-ups (fitted ≈0.20 vs empirical
+≈0.23 at |ĝ|<0.15) and the empirical decay lies between the two fitted
+shapes; vote-weighted RMS 0.0225 (lattice) vs 0.0237 (Davidson) —
+near-identical fit quality despite the different shapes (the gap range
+where they differ most is data-thin).
+
+**Robustness variant (both-bad mapped to tie): INCONCLUSIVE with a
+structural caveat that is itself informative.** The lattice unit slammed
+into the pre-set grid ceiling (1.4) in 11/13 windows — the dead-heat
+mechanism cannot express ~35% tie mass at plausible units, while Davidson
+absorbs it trivially (ν̂≈1.0–1.08, interior). Early windows show huge
+Davidson advantages (−7 to −24×MPD) exactly where the bound binds; late
+windows flip lattice-positive (+4.5 to +7.5). Comparison is unfair to the
+lattice at the bound (grid was pre-set; extending it would be post-hoc —
+flagged for interpretation discussion, not rerun). Honest reading
+recorded: the dead-heat mechanism structurally refuses both-bad-scale tie
+mass — which independently supports the original decision that both-bad
+is not a dead-heat outcome.
+
+**Status: RQ4 done — the last pre-registered empirical piece. Synthesis
+transition flagged to user per instruction (findings inventory + paper
+outline next, no fifth investigation without a deliberate decision).**
+
+---

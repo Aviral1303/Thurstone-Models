@@ -66,9 +66,91 @@ nonstationary drift---not link choice---bind next-month predictability in
 deployments of this shape.
 \end{abstract}
 
+\section{Introduction}\label{sec:intro}
+
+Chatbot Arena~\citep{chiang2024arena} has become the de facto public
+scoreboard for large language models: users pose a prompt, two anonymous
+models respond, and the user votes for a winner or declares a tie. The
+platform converts these votes into a leaderboard by maximum-likelihood
+Bradley--Terry (BT)~\citep{bradleyterry1952}, fitting one latent ability
+per model under a logistic link. Our study window alone contains 1.8
+million recorded battles across 129 models (1.67 million after the
+platform's own deduplication filter), with new models entering the
+comparison pool continuously throughout.
+
+BT buys its simplicity with a strong structural assumption. As a
+logit-family choice model it satisfies Luce's independence of irrelevant
+alternatives~\citep{luce1959}: the odds of model $A$ beating model $B$ are
+taken to be invariant to whatever else occupies the pool. Nothing about
+human preference data guarantees this, and a leaderboard whose pool grows
+by the month---forcing a global re-estimate over an ever-changing
+comparison graph---is precisely the setting where one might expect the
+assumption to bite: incumbent ratings could shift when entrants arrive,
+predicted win probabilities could miscalibrate for fresh models, and the
+tie outcome (roughly a fifth of quality votes) is not even part of BT's
+native outcome space. The Thurstonian random-utility
+family~\citep{thurstone1927} offers the classical alternative---each model
+draws a latent performance and the better draw wins---and Cotton's
+lattice construction~\citep{cotton2021} makes that family computationally
+exact for arbitrary base densities, with ties arising natively as
+dead-heat mass rather than by parametric extension~\citep{davidson1970}.
+On pairwise data the lattice model reduces to a \emph{gap link}: a
+probability curve in the ability difference, like BT's logistic but with
+a different shape---steeper at a toss-up (slope $0.284$--$0.337$
+depending on its tie-band width, against the logistic's $0.25$) and
+carrying a native tie band. Whether that different shape is worth
+anything in a real deployment is an empirical question, and to our
+knowledge it had not been asked at this scale.
+
+We asked it four ways, each pre-registered before any real-data number
+was computed: practical-significance thresholds derived from
+deployment-meaningful error sizes, detection gates validated on synthetic
+ground truth, and pattern-based verdict criteria fixed in advance.
+(RQ1)~When new models enter, whose refit perturbs incumbent rankings
+less? (RQ2)~Is either link shape more consistent with observed win rates
+across triples of models? (RQ3)~Which link calibrates better on held-out
+votes, especially for recent entrants? (RQ4)~Does a native dead-heat band
+fit the observed tie structure better than Davidson's extension of BT?
+
+The answer, delivered with unusual statistical redundancy, is that the
+link does not matter here. Refit stability is indistinguishable---across
+thirteen month-over-month refits the median paired rank-correlation
+difference is $+0.00000$, with the two methods exactly tied in five
+windows---while window-to-window variation in stability, governed by pool
+maturity, exceeds the between-method differences by roughly two orders of
+magnitude. Two structurally different analyses (an
+analytic calibration ceiling and an empirical triple-additivity test)
+independently agree that at the ability gaps real matchups occupy, no
+plausible member of the Thurstonian family is distinguishable from the
+logistic. The two remaining comparisons, held-out calibration and tie
+handling, both end \emph{inconclusive} rather than equivalent---a
+distinction we maintain deliberately, because each verdict was dominated
+by a single anomalous window rather than by any systematic difference,
+and our pre-registered criteria refuse a call under exactly that pattern.
+
+This paper's contribution is that negative result, stated with the
+precision it deserves, together with what we found inside it. First, a
+structural asymmetry: a steep link's single tie parameter entangles tie
+mass with decisive discrimination, while Davidson's tie parameter is
+provably orthogonal to its logistic link---forcing the lattice band to
+absorb both-bad-scale tie mass measurably degrades its decisive
+accuracy. Second, a two-faced interaction between link steepness and
+parameter uncertainty: steep links make overconfident plugin predictions
+from noisy estimates, yet the same steepness acts as implicit shrinkage
+in estimation---in our data it once prevented a severe cold-start
+extrapolation error that cost BT dearly. Third, an open question: a
+temporally localized excess dispersion, present under every link we
+tested and attributable to none of the covariates we measured. And
+throughout, a deployment lesson that inverts the motivating question:
+what binds ranking quality in a system like Arena is not the link
+function at all, but cold-start coverage and nonstationary drift---both
+of which dwarf every between-method difference we measured. We believe
+the audit itself, and the pre-registration discipline that kept four
+successive verdicts honest, are as much the contribution as any single
+number.
+
 % ==================================================================
 % Sections to be added one at a time, each user-reviewed before the next:
-%   2. Introduction
 %   3. Related Work
 %   4. Data and Methods
 %   5. RQ1  Refit Stability            (Fig 1: rq1_metrics.csv)

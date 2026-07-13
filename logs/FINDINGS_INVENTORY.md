@@ -251,4 +251,5 @@ designs transported verbatim; labeled post-hoc generalization)
 | ridge cold-start protection | θ̂(pplx) +0.378→0.000 over λ∈[1,3]; ~5.5×MPD window gain | ridge_sweep_episode.csv |
 | 2025 replication (RQ3-style) | equivalence + BT lean −0.084/−0.175/−0.176×MPD | arena2025_verdicts.csv |
 | artifact attribution | old interp +5.792×MPD vs HEAD +0.017×MPD, same window | RESEARCH_LOG 2026-07-13 |
+| Theorem 2 numerics | sup|Δp| 0.011, mean 0.0009; part-(i) bound 6.64×MPD; part-(ii) 0.0086×MPD (u0.5855) | theorem2_numerics.csv |
 | MPDs | RQ3 4e-4; RQ4 3e-4 nats/vote | pre-analysis docs |

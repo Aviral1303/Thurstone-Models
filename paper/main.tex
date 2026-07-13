@@ -1,13 +1,8 @@
-% Restructured per reviewer critique (2026-07-13): single thesis, ceilings
-% promoted, Theorem 1, three contributions, momentum structure, HEAD numbers.
+% Reframed 2026-07-13 per advisor guidance: methodology (effect ceilings) +
+% framework (error budget) + case study (Arena). Theorem 2 added. Prose
+% rewritten in plain, connected style; no em/en dashes in running text.
 % Facts source of truth: logs/FINDINGS_INVENTORY.md (revised 2026-07-13).
-%
-% TITLE: changed per critique from "The Cost of a Steeper Link: Calibration,
-% Stability, and Tie Mechanics in Large-Scale Pairwise Preference Ranking"
-% — confirmed by user 2026-07-13.
-%
-% FORMAT NOTE: generic article class with NeurIPS-like dimensions (no venue
-% .sty vendored). Swap preamble for the venue style once chosen.
+% Title confirmed by user. Generic NeurIPS-like preamble; venue TBD.
 
 \documentclass[10pt]{article}
 
@@ -38,209 +33,229 @@
 \maketitle
 
 \begin{abstract}
-Leaderboards such as Chatbot Arena rank language models with
-Bradley--Terry, a logistic-link model whose independence-of-irrelevant-%
-alternatives assumption is widely criticized. It seems natural that a
-richer Thurstonian link---flexible noise, native ties---should do better.
-We test this belief with a pre-registered audit on 1.67 million Arena
-votes, replicated on a second 2025 release, and find it false. We also
-show why it could not have been otherwise. Before fitting anything, we
-compute an \emph{effect ceiling}: on the ability gaps that real matchups
-occupy, no plausible link in the family can beat the logistic by more
-than a third of one practically meaningful unit. The data respect that
-ceiling everywhere. Refit stability under sixteen months of pool growth
-is indistinguishable. Held-out calibration is practically equivalent.
-Tie mechanisms with provably different shapes fit ties equally well.
-What separates the models instead is structure, not fit: a single-width
-tie band buys tie mass with decisive accuracy, while Davidson's tie
-parameter is exactly orthogonal to its link (Theorem~1). A steeper
-link's apparent cold-start protection dissolved under audit into a
-numerical artifact; explicit ridge regularization delivers the real
-thing. One anomaly resists attribution: temporally localized excess
-dispersion under every link tested. The broader lesson is simple.
-Richer links help only when approximation error dominates estimation
-error---and in large, drifting, cold-start-ridden preference systems,
-it does not.
+Before making a model more expressive, it is worth asking whether the
+errors it is meant to fix are the errors the system actually makes. We
+develop that question into a working method for preference ranking.
+The idea is to compute, before fitting anything, an \emph{effect
+ceiling}: the largest improvement any richer model in a candidate
+family could deliver, given where the data actually live. The ceiling
+then anchors an \emph{error budget} that assigns the system's observed
+error to approximation, estimation, and drift. We apply the method to
+a question the community keeps raising about Chatbot Arena, which
+ranks language models with Bradley--Terry despite well known
+objections to its independence assumption. A richer Thurstonian
+alternative with flexible noise and native tie handling seems like it
+should help. The ceiling says otherwise: on the ability gaps real
+matchups occupy, the two model families never disagree by more than
+about one percentage point of win probability, so almost no
+improvement was available to find. A pre-registered audit of 1.67
+million votes, replicated on a second release, confirms the ceiling
+everywhere. What actually limits the system is estimation error,
+cold-start coverage, and nonstationary drift, each of which exceeds
+the ceiling by one to two orders of magnitude. The general lesson is
+that expressiveness pays only where approximation error is the
+binding constraint, and the method tells you in advance whether it is.
 \end{abstract}
 
 % ==================================================================
 \section{Introduction}\label{sec:intro}
 
-Preference leaderboards face a standing accusation. Chatbot
-Arena~\citep{chiang2024arena} ranks language models by
-maximum-likelihood Bradley--Terry (BT)~\citep{bradleyterry1952}, and
-BT's logistic link commits it to Luce's independence of irrelevant
-alternatives~\citep{luce1959}. Human preferences owe that axiom nothing.
-The comparison pool grows every month, ties are a fifth of quality votes
-and outside BT's outcome space, and every refit re-estimates a global
-model over a graph that has changed shape. The natural remedy is also
-classical: Thurstonian random-utility models~\citep{thurstone1927}, made
-computationally exact for arbitrary noise densities by Cotton's lattice
-construction~\citep{cotton2021}, with ties arising natively as dead-heat
-mass rather than by parametric patch~\citep{davidson1970}.
+A recurring situation in applied modeling goes like this. A deployed
+system uses a simple model. The simple model rests on an assumption
+that theory says is wrong. A richer model exists that fixes the
+assumption. Someone proposes switching. The proposal sounds like
+progress, and evaluating it sounds straightforward: fit both models
+and see which one wins.
 
-So the hypothesis writes itself. \emph{A richer, tie-aware Thurstonian
-link should produce better rankings than BT.} To our knowledge nobody
-had tested it at scale. We test it on 1.67 million Arena votes spanning
-129 models and sixteen months, under pre-registered designs: effect
-thresholds derived from deployment-meaningful errors, synthetic
-detection gates passed before real data, verdict criteria fixed in
-advance. We then replicate every comparison on an independent 2025
-Arena release.
+This paper argues that the comparison should start somewhere else.
+Before fitting anything, one can often compute how large the richer
+model's advantage could possibly be. The two models are functions, the
+data occupy a known region, and if the functions barely differ on that
+region, then no amount of fitting will separate them. We call this
+computation an effect ceiling. When the ceiling comes out far below
+the smallest difference that would matter in practice, the comparison
+is settled before it begins, and attention should move to the errors
+that remain. Assigning the system's observed error to its actual
+sources, which we call an error budget, is the second half of the
+method. Together the two computations answer a question that matters
+well beyond any single comparison: is this system limited by what its
+model can express, or by what its data can estimate?
 
-The hypothesis is false. Refit stability, held-out calibration, and tie
-fit are practically indistinguishable between the two families, in both
-datasets. More importantly, we can say \emph{why}, and could have said
-it before fitting: a computation we call an effect ceiling shows that on
-the empirical distribution of matchup gaps, the best possible advantage
-of any link in this Thurstonian family over the logistic is
-$0.23$--$0.31\times$ our minimum practical difference
-(Section~\ref{sec:ceiling}). The experiments did not merely fail to find
-an effect. There was provably almost no effect to find. The thesis of
-this paper, which every section reinforces, is:
+We develop the method on a live case. Chatbot Arena ranks language
+models by fitting Bradley--Terry to millions of pairwise human
+votes~\citep{chiang2024arena, bradleyterry1952}. Bradley--Terry
+assumes independence of irrelevant alternatives, an axiom human
+preferences owe nothing to~\citep{luce1959}, and the platform's
+comparison pool grows every month while ties, a fifth of quality
+votes, sit outside the model's outcome space entirely. The classical
+remedy is the Thurstonian family~\citep{thurstone1927}, made exact for
+arbitrary noise by Cotton's lattice construction~\citep{cotton2021},
+with ties arising naturally as dead heats rather than by parametric
+patch~\citep{davidson1970}. The hypothesis that a richer, tie-aware
+link should rank better writes itself, and to our knowledge nobody had
+tested it at scale.
 
-\begin{center}
-\emph{Richer preference links improve rankings only when approximation
-error dominates estimation error --- and in a large, evolving preference
-system, it does not.}
-\end{center}
+The ceiling says the hypothesis never had room to be true. Real
+matchups concentrate near toss-ups, where every sensible link agrees.
+On the observed distribution of ability gaps, the best possible
+advantage of any link in this Thurstonian family over the logistic is
+between 0.23 and 0.31 times our minimum practical difference, a
+threshold we derive from a ten-Elo-point reading error. At no observed
+matchup do the two links disagree by more than about one percentage
+point of win probability. We prove the general version of this
+argument as Theorem~\ref{thm:ceiling}: when two model families are
+uniformly close on the support of the data, no fitting procedure, and
+in fact no state of the world, can separate them by more than a
+computable amount.
 
-What dominates instead is measurable. All methods share the same large
-next-month miscalibration from nonstationary drift. Up to three quarters
-of next-month votes involve a model no ability estimator can score.
-Where the families do differ, the difference is structural rather than
-statistical: Davidson's tie parameter provably never touches its
-decisive link, while the lattice's single width parameter buys tie mass
-with decisive accuracy (Theorem~\ref{thm:orth}, measured in
-Section~\ref{sec:rq4}). And the one apparent counterexample we
-observed---a steep link protecting against a cold-start blow-up---turned
-out, under our own audit machinery, to be a numerical artifact; explicit
-ridge regularization provides the genuine version of that protection
-(Section~\ref{sec:artifact}).
+The audit confirms the ceiling in every direction we test. Across
+sixteen months of pool growth, refit stability is statistically
+indistinguishable between the families. Held-out calibration is
+practically equivalent, with a real but sub-practical lean toward
+Bradley--Terry. The two tie mechanisms have provably different shapes,
+yet fit observed ties equally well, because the data are thin exactly
+where the shapes diverge. Every comparison replicates on an
+independent 2025 release. Meanwhile the budget shows where the error
+actually lives: all methods share the same forty-six percent
+underconfidence on next-month votes, up to three quarters of
+next-month votes involve a brand-new model that no ability estimator
+can score, and the tie rate itself drifts by half over the study
+period. Each of these exceeds the entire link-choice ceiling by one to
+two orders of magnitude.
 
-Our contributions are three.
-\textbf{(1) A pre-registered, replicated negative result:} link choice
-has no practical effect on stability, calibration, or tie fit in a real
-large-scale preference deployment.
-\textbf{(2) A reusable methodology:} effect ceilings computed before
-fitting, synthetic gates before data, and pattern-based verdict criteria
-fixed in advance---the discipline that made the negative result
-trustworthy and that caught our own artifact.
-\textbf{(3) A structural account of why, and of what matters instead:}
-a tie-orthogonality theorem and its entanglement converse, regularization
-rather than link shape as the cold-start lever, the dominance of drift
-and coverage---plus one honest, unattributed anomaly
+Three findings give the audit its texture. First, the families do
+differ, but structurally rather than statistically: Davidson's tie
+parameter provably never touches its decisive predictions, while the
+lattice's single width parameter buys tie mass at the price of
+decisive accuracy, a cost we measure
+(Theorem~\ref{thm:orth}, Section~\ref{sec:rq4}). Second, the one
+apparent exception we observed, a cold-start episode in which the
+steeper link seemed to protect against a bad extrapolation, dissolved
+under our own audit into a numerical artifact; explicit ridge
+regularization then delivered the genuine protection the artifact had
+only imitated (Section~\ref{sec:artifact}). Third, one anomaly
+survives every attribution attempt we make
 (Section~\ref{sec:anomaly}).
+
+Our contributions, in the order we would defend them: a methodology,
+the effect ceiling, that any researcher comparing two model families
+can compute tomorrow on their own data; a framework, the error
+budget, that turns ``which model wins'' into the more useful question
+``where does the error come from''; and a case study rigorous enough
+to trust, in which a large modern preference system is shown to be
+estimation-limited rather than approximation-limited, with every
+verdict pre-registered, thresholded, gated, and replicated.
 
 % ==================================================================
 \section{Related work}\label{sec:related}
 
-\paragraph{Paired comparisons.} Thurstone's random-utility
-model~\citep{thurstone1927,mosteller1951} and the
-Bradley--Terry--Luce logistic family~\citep{bradleyterry1952,luce1959}
-are the two poles of a century-old literature; \citet{harville1973} and
-\citet{plackett1975} extend the multiplicative family to multi-entry
-contests, \citet{davidson1970} adds ties, and
-Elo~\citep{elo1978} and Glicko~\citep{glickman1999} are its online
-descendants. TrueSkill~\citep{herbrich2007trueskill} shares the
-Thurstonian generative story with approximate Bayesian inference; we
-cite it for positioning only and do not test it, since its different
-estimation machinery would confound the link-shape question our design
-isolates. Mallows-type ranking models lack a latent performance scale
-and behave delicately in the number of
-alternatives~\citep{doignon2004,boehmer2024}; we stay inside the
-random-utility family throughout.
+The models we compare descend from a century of work on paired
+comparison. Thurstone modeled choices as comparisons of noisy latent
+performances~\citep{thurstone1927, mosteller1951}; Bradley and Terry
+gave the logistic special case its modern
+form~\citep{bradleyterry1952}, which Luce showed is exactly the model
+implied by independence of irrelevant
+alternatives~\citep{luce1959}. Harville and Plackett extended the
+family to multi-entry contests and rankings~\citep{harville1973,
+plackett1975}, Davidson added an explicit tie
+outcome~\citep{davidson1970}, and Elo and Glicko turned the ideas into
+the online rating systems used everywhere from chess to
+matchmaking~\citep{elo1978, glickman1999}. TrueSkill shares the
+Thurstonian generative story and fits it by approximate Bayesian
+inference~\citep{herbrich2007trueskill}; we cite it for positioning
+and do not test it, because its different estimation machinery would
+confound the link-shape question our design isolates. Ranking models
+without a latent performance scale, such as the Mallows family, sit
+outside the random-utility tradition and behave delicately as the
+number of alternatives grows~\citep{doignon2004, boehmer2024}, so we
+stay inside it.
 
-\paragraph{The lattice model --- and a disclaimer.}
-\citet{cotton2021} computes exact win probabilities for $N$-entrant
-contests with arbitrary discretized noise, ties as dead-heat mass, and
-$O(N)$ cost; the construction is coherent under adding or removing
-entrants. That multi-entrant field coherence is the paper's primary
-theorem. \textbf{This paper is not a test of Cotton's primary theorem.}
-Arena data is pairwise only, and on two entrants the lattice reduces to
-a one-dimensional gap link (Section~\ref{sec:models}). We evaluate the
-link shape and tie mechanism that the lattice family induces on pairwise
-data---the lattice machinery is our computational vehicle, not our
-hypothesis. Testing field coherence itself requires listwise data that
-no public Arena release contains.
+Cotton's lattice construction deserves a careful sentence, because we
+use its machinery while testing none of its main claims. The
+construction computes exact win probabilities for contests among any
+number of entrants, with arbitrary discretized noise and ties as
+dead-heat mass, and it remains coherent when entrants are added or
+removed~\citep{cotton2021}. That multi-entrant coherence is the
+paper's primary theorem. This paper is not a test of Cotton's primary
+theorem. Arena votes are pairwise, and on two entrants the lattice
+reduces to a one-dimensional curve in the ability difference, directly
+comparable to the logistic. What we evaluate is that curve and its tie
+mechanism. Testing field coherence itself would require listwise data
+that no public release contains.
 
-\paragraph{Arena methodology.} The leaderboard fits BT over deduplicated
-anonymous battles with ties given half weight in each
-direction~\citep{chiang2024arena}. Our pipeline reproduces the published
-board to $0.18$ Elo points MAE at our snapshot
-(Section~\ref{sec:data}). Later platform methodology adds
-style-controlled variants; our audit uses the raw preference log and
-says nothing about style adjustment.
-
-\paragraph{Preference inconsistency.} Positional and permutation biases
-in LLM judging~\citep{tang2023}, social-choice repairs~\citep{potyka2023},
-listwise preference objectives~\citep{liu2024lipo}, and measured
-transitivity and IIA violations~\citep{zhao2024} all document departures
-from the axioms these models assume. Our anomaly
-(Section~\ref{sec:anomaly}) is a human-vote counterpart: a violation
-shared by \emph{every} static gap link we test.
+On the platform side, the Arena leaderboard fits Bradley--Terry over
+deduplicated anonymous battles with ties given half weight in each
+direction~\citep{chiang2024arena}; our pipeline reproduces the
+published board to 0.18 Elo points of mean absolute error
+(Section~\ref{sec:data}). The platform's methodology has since grown
+style-controlled variants; we analyze the raw preference log and make
+no claims about style adjustment. A separate line of work documents
+violations of the axioms these models assume, from positional bias in
+LLM judging~\citep{tang2023} to measured failures of transitivity and
+independence~\citep{zhao2024}, with social-choice aggregation and
+listwise objectives proposed in response~\citep{potyka2023,
+liu2024lipo}. The anomaly of Section~\ref{sec:anomaly} adds a
+human-vote observation to that literature: a violation shared by every
+static model we test rather than distinguishing between them.
 
 % ==================================================================
-\section{Two families, one theorem}\label{sec:models}
+\section{Two ways to model a vote}\label{sec:models}
 
-\subsection{Gap links}
-
-Model $i$ carries an ability $\theta_i$. In a battle, each side draws a
-performance $X = \theta + \varepsilon$ with i.i.d.\ noise, and the larger
-draw wins. Only the difference matters, so every such model is a
-\emph{gap link}: with $g = \theta_A - \theta_B$,
+Suppose model $i$ has an ability $\theta_i$, and a battle between $A$
+and $B$ is decided by which side draws the higher performance
+$X = \theta + \varepsilon$, with independent noise on each side. Only
+the difference between abilities matters, so any such model reduces to
+an increasing curve in the gap $g = \theta_A - \theta_B$:
 \begin{equation}
-\Pr(A \succ B) = F(g),
+\Pr(A \succ B) = F(g).
 \end{equation}
-for an increasing $F$ set by the noise. BT is $F = \sigma$, the logistic
-$\sigma(g) = (1+e^{-g})^{-1}$---the unique gap link satisfying IIA.
-Continuous noise gives ties probability zero. The two families below
-restore ties in opposite ways.
+We call $F$ the link. Bradley--Terry is the logistic link
+$\sigma(g) = (1+e^{-g})^{-1}$, and it is the unique link consistent
+with independence of irrelevant alternatives. Continuous noise leaves
+no room for ties, and the two families we compare restore them in
+instructively opposite ways.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_model.pdf}
-\caption{The lattice gap-link model. \textbf{(a)} Discretized
-performance distributions at gap $g=0.8$, width $u=0.5855$ (a coarse
-$L=12$ lattice is drawn so cells are visible; fits use $L=500$).
-Hatched: dead-heat mass---both performances in the same cell.
-\textbf{(b)} Conditional decisive links, Eq.~\eqref{eq:fdec}. Lattice
-links are steeper than the logistic at the origin (slopes
-$0.290$--$0.337$ vs.\ $0.25$) and steepen as the tie band widens.}
+\caption{The lattice model of a vote. Panel (a) shows two discretized
+performance distributions at gap $g=0.8$ and cell width $u=0.5855$; a
+coarse lattice is drawn so the cells are visible, while fits use 500
+cells per side. The hatched region is dead-heat mass, the probability
+that both performances land in the same cell. Panel (b) shows the
+decisive links this induces at three widths, next to the logistic.
+The lattice links are steeper at a toss-up, with slopes from 0.290 to
+0.337 against the logistic's 0.25, and they steepen as the tie band
+widens.}
 \label{fig:model}
 \end{figure}
 
-\subsection{The lattice family: ties as dead heat, steepness as a
-side effect}
-
-Following \citet{cotton2021}, discretize the noise onto a lattice of
-cell width $u$. Performances land on cells $x_j = ju$; with
-$a_j(g) = \Pr(X_A = x_j)$ and $b_j = \Pr(X_B = x_j)$,
+The lattice family discretizes the noise onto cells of width $u$, so
+that performances take values $x_j = ju$. Writing $a_j(g)$ and $b_j$
+for the two sides' cell probabilities, the outcome probabilities are
 \begin{equation}\label{eq:lattice}
 W(g) = \sum_j a_j(g)\,\Pr(X_B < x_j), \qquad
 D(g) = \sum_j a_j(g)\, b_j, \qquad
-L(g) = W(-g).
+L(g) = W(-g),
 \end{equation}
-A tie is a dead heat: both draws in one cell
-(Figure~\ref{fig:model}a). The width $u$ is the single tie parameter,
-fit by profile likelihood. The induced decisive link is
+and a tie is a dead heat: both draws in one cell, as in
+Figure~\ref{fig:model}a. The width $u$ is the family's single tie
+parameter, and we fit it by profile likelihood. Conditional on a
+decisive outcome the family predicts with
 \begin{equation}\label{eq:fdec}
-F_u(g) = \frac{W(g)}{W(g)+L(g)}.
+F_u(g) = \frac{W(g)}{W(g)+L(g)},
 \end{equation}
-Two facts organize everything downstream. First, $F_u$ is steeper than
-the logistic at a toss-up---$F_u'(0)$ is $0.290$, $0.324$, $0.337$ at
-$u \in \{0.1, 0.5855, 0.8\}$ against $\sigma'(0)=0.25$---and steepens
-as $u$ grows. Carving dead-heat mass from the middle of the distribution
-sharpens what remains; the logistic's slope is unattainable at any
-width. Second, as a consequence, one parameter controls tie mass
-\emph{and} decisive steepness. The family cannot move one without the
-other. We call this \emph{entanglement} and measure its price in
-Section~\ref{sec:rq4}.
+and two properties of this curve shape everything downstream. It is
+steeper than the logistic at a toss-up, and it steepens further as
+$u$ grows, because carving dead-heat mass out of the middle of the
+distribution sharpens what remains; the logistic's slope is not
+attainable at any width. It follows that a single parameter controls
+tie mass and decisive steepness together. The family cannot adjust
+one without moving the other, a property we will call entanglement
+and whose price we measure in Section~\ref{sec:rq4}.
 
-\subsection{Davidson: ties by extension, orthogonal by theorem}
-
-\citet{davidson1970} extends BT with a tie outcome. In gap form, with
-$\nu \geq 0$ and $Z_\nu(g) = 2\cosh(g/2) + \nu$,
+Davidson's family extends Bradley--Terry instead. With tie parameter
+$\nu \geq 0$ and normalizer $Z_\nu(g) = 2\cosh(g/2) + \nu$,
 \begin{equation}\label{eq:davidson}
 \Pr(A \succ B \mid g) = \frac{e^{g/2}}{Z_\nu(g)}, \qquad
 \Pr(\text{tie} \mid g) = \frac{\nu}{Z_\nu(g)}, \qquad
@@ -248,528 +263,608 @@ $\nu \geq 0$ and $Z_\nu(g) = 2\cosh(g/2) + \nu$,
 \end{equation}
 
 \begin{theorem}[Tie orthogonality]\label{thm:orth}
-For every $\nu \geq 0$, Davidson's conditional decisive link is exactly
-logistic: $\Pr(A \succ B \mid \mathrm{decisive}, g) = \sigma(g)$.
+For every $\nu \geq 0$, Davidson's conditional decisive link is
+exactly logistic: $\Pr(A \succ B \mid \mathrm{decisive}, g) =
+\sigma(g)$.
 \end{theorem}
 
 \begin{proof}
-Conditioning on a decisive outcome cancels $Z_\nu$:
-$e^{g/2}/(e^{g/2}+e^{-g/2}) = \sigma(g)$.
+Conditioning on a decisive outcome cancels the normalizer, leaving
+$e^{g/2}/(e^{g/2} + e^{-g/2}) = \sigma(g)$.
 \end{proof}
 
-Theorem~\ref{thm:orth} makes the two families a perfectly matched pair.
-Each has one ability per model and one tie parameter. They differ in
-exactly one structural respect: Davidson's tie parameter never touches
-its decisive link, and the lattice's always does. Every tie-related
-question in this paper comes back to this theorem---including why a
-decisive-only comparison of BT and Davidson would be vacuous, and what
-the both-bad stress test of Section~\ref{sec:rq4} is actually measuring.
+The theorem makes the two families a matched pair in the cleanest
+possible sense. Each has one ability per model and one tie parameter.
+They differ in exactly one structural respect: Davidson's tie
+parameter never touches its decisive predictions, and the lattice's
+always does. Every tie-related result in this paper traces back to
+this contrast.
 
-\subsection{Estimation and conventions}
-
-All fits are per-vote maximum likelihood with analytic gradients; only
-the link differs between methods. Where an experiment replicates the
-production leaderboard's outcome treatment, decisive votes count twice
-in their direction and each tie once in each direction through the
-decisive link (\emph{half-tie} mode); where tie prediction is itself the
-question, the full trinomial $\{W,D,L\}$ likelihood is used. All fits of
-all methods anchor the same reference model
-(\texttt{gpt-4-0613}~$=0$: a dated checkpoint, present with high volume
-in every training window; the production anchor enters too late for our
-earliest refits). Cross-link ability magnitudes are rescaled by
-$F'(0)/0.25$ so a reported unit buys the same win-probability change at
-a toss-up---the analogue of BT's $400/\ln 10$ Elo constant---and are
-labeled convention-dependent. Sign conventions for calibration deltas
-are stated once per results section.
+A few conventions used throughout. All fits are per-vote maximum
+likelihood with analytic gradients, and only the link differs between
+methods. Where an experiment mirrors the production leaderboard,
+decisive votes count twice in their direction and each tie counts
+once in each direction through the decisive link; where tie
+prediction is itself the question, we use the full three-outcome
+likelihood. Every fit anchors the same reference model, a dated
+checkpoint present with high volume in every training window, and
+ability magnitudes compared across links are rescaled so that one
+reported unit buys the same win-probability change at a toss-up in
+every method, the same role the familiar 400 over log 10 constant
+plays for Elo.
 
 % ==================================================================
-\section{How much could the link matter? Effect ceilings}
-\label{sec:ceiling}
+\section{Effect ceilings and the error budget}\label{sec:ceiling}
 
-The question ``is this link better?'' has a computable prerequisite:
-``how much better could \emph{any} link be?'' Both links are fit to the
-same votes and scored on the same outcomes, so if one family were
-exactly true, the other's best-fitting member would concede at most a
-computable amount---an amount that depends only on the two link shapes
-and on where the data put their ability gaps. With $\hat P$ the
-vote-weighted empirical distribution of fitted gaps and $F_u$ a lattice
-truth, the logistic's minimal concession is
-\begin{equation}\label{eq:ceiling}
-C = \min_{s>0}\ \mathbb{E}_{g\sim\hat P}\,
+The question ``is the richer model better'' has a prerequisite that
+is almost never computed: how much better could it possibly be? Both
+models will be fit to the same votes and scored on the same outcomes.
+If their links barely differ on the gaps the data contain, the
+comparison is over before it starts. This section turns that
+observation into a theorem, a number, and a framework.
+
+Start with the honest version of the best case. Suppose the world
+really is the richer family: outcomes are generated by some lattice
+link $F_u$. The simpler family still gets to fit itself, so the
+richer family's true advantage is only what the best logistic
+concedes. With $\hat P$ the empirical distribution of fitted gaps,
+that concession is
+\begin{equation}\label{eq:ceilingdef}
+C \;=\; \min_{s>0}\; \mathbb{E}_{g\sim\hat P}\,
 \mathrm{KL}\!\left(\mathrm{Bern}(F_u(g)) \,\big\|\,
-\mathrm{Bern}(\sigma(g/s))\right).
+\mathrm{Bern}(\sigma(g/s))\right),
 \end{equation}
-Real matchups concentrate near toss-ups---the median fitted $|g|$ is
-$0.31$---exactly where all increasing links agree. Evaluated across
-every plausible width and skew, Eq.~\eqref{eq:ceiling} gives
-$C \leq 0.23\times$MPD, where MPD is the pre-registered minimum
-practical difference of Section~\ref{sec:data}; the trinomial analogue
-for tie mechanisms is $\leq 0.31\times$MPD in \emph{both} truth
-directions. Since per-model flexibility absorbs still more, these are
-upper bounds.
+and we call $C$ the effect ceiling. The following theorem says the
+ceiling means what it appears to mean, and that a cruder version of
+it holds with no assumption about the world at all.
 
-Three consequences. First, the honest a-priori expectation for every
-calibration comparison in this paper was practical equivalence---we
-recorded that expectation before fitting, and any verdict exceeding a
-ceiling would itself have demanded a misspecification investigation.
-Second, the ceiling is falsifiable by a second route that involves no
-held-out scoring at all: every gap link makes the overidentifying
-triple prediction
-$F^{-1}(p_{AC}) = F^{-1}(p_{AB}) + F^{-1}(p_{BC})$, so if the links are
-interchangeable on real gaps, their triple residuals must be
-indistinguishable too. Section~\ref{sec:rq2b} confirms this
-independently. Third, the methodology travels: for any two candidate
-models of the same data, an hour of arithmetic on the empirical design
-distribution can reveal---before any experiment---that the comparison
-cannot practically matter. We offer the ceiling as a reusable
-pre-analysis step, and this paper as a case study in what happens when
-it is taken seriously.
+\begin{theorem}[Approximation-limited regime]\label{thm:ceiling}
+Let $p$ and $p'$ be two prediction rules mapping gaps to win
+probabilities, and let $m(g)$ denote the smallest of $p(g)$,
+$1-p(g)$, $p'(g)$, $1-p'(g)$.
+\emph{(i)} For every sequence of outcomes whatsoever, the difference
+in average log loss between predicting with $p$ and with $p'$ is at
+most $\mathbb{E}_{g\sim\hat P}\!\left[\,|p(g)-p'(g)|/m(g)\,\right]$.
+\emph{(ii)} If outcomes are generated with true win probabilities
+$p(g)$, the expected excess log loss of predicting with $p'$ instead
+of $p$ equals
+$\mathbb{E}_{g\sim\hat P}\,\mathrm{KL}(\mathrm{Bern}(p)\,\|\,
+\mathrm{Bern}(p'))$. Consequently the expected advantage of the true
+family over the best member of a competing family equals the effect
+ceiling of Eq.~\eqref{eq:ceilingdef}, and predicting with any
+estimated member of the true family rather than the truth itself only
+reduces that advantage.
+\end{theorem}
+
+\begin{proof}
+For (i), fix one vote with gap $g$ and outcome $y$. The prediction
+enters the loss as $\log p$ or $\log(1-p)$, and by the mean value
+theorem the two rules' losses differ by at most
+$|p - p'|$ divided by the smaller of the two arguments, which $m(g)$
+bounds. Averaging over votes gives the claim. For (ii), take
+expectations of the log loss under $\mathrm{Bern}(p(g))$: the
+difference between using $p'$ and using $p$ is exactly the
+Kullback--Leibler divergence at each gap, and minimizing its average
+over the competing family gives the ceiling. Estimation error on the
+true side adds
+$\mathbb{E}\,\mathrm{KL}(\mathrm{Bern}(p)\| \mathrm{Bern}(\hat p))
+\geq 0$ to the true side's loss.
+\end{proof}
+
+Now put numbers in. Real Arena matchups concentrate near toss-ups;
+the median fitted gap magnitude is 0.31, and every increasing link
+agrees at a toss-up by construction. On the observed gap
+distribution, the lattice link at its primary width and its best
+logistic competitor never differ by more than 0.011 in win
+probability, and on the average vote they differ by 0.0009. Part (i)
+of the theorem, which assumes nothing about how outcomes arise,
+already confines any conceivable log-loss separation to 6.6 times the
+minimum practical difference defined in Section~\ref{sec:data}. Part
+(ii), the sharp in-family computation of Eq.~\eqref{eq:ceilingdef},
+closes it to 0.009 at the primary width, and to at most 0.23 across
+every width and skew we consider plausible. The tie-mechanism
+analogue, computed on three-outcome predictions, is at most 0.31 in
+both truth directions. These are upper bounds on what fitting could
+ever recover, computed before any experiment ran, and they set the
+honest expectation for everything in Section~\ref{sec:results}:
+practical equivalence, everywhere.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig_concept.pdf}
+\caption{The error budget of the system we study, drawn schematically.
+The quantity that model choice controls is bounded by construction at
+a fraction of the practical threshold. The quantities that actually
+limit ranking quality live on other axes and exceed it by one to two
+orders of magnitude. Annotated values are measured; bar lengths are
+not to scale.}
+\label{fig:concept}
+\end{figure}
+
+The ceiling is one line of a larger account. A ranking system's error
+has several possible sources: the model family may be unable to
+express the truth, which is approximation error; the data may be too
+thin or too new to pin down the parameters, which is estimation
+error; and the world may move between training and use, which is
+drift. Each source has its own instrument. The ceiling bounds the
+approximation line. Standard errors, coverage counts, and
+regularization experiments measure the estimation line. Recalibration
+slopes on held-out predictions measure drift. Filling in the lines
+for a given system is what we mean by an error budget, and
+Figure~\ref{fig:concept} shows the completed budget for Arena: the
+approximation line is bounded at a fraction of one practical unit,
+and every other line dwarfs it. The rest of the paper is the audit
+that fills in that figure, and we would argue the budget, not any
+single verdict, is the real product of the exercise. A reader
+comparing logistic regression to a neural network, or Plackett--Luce
+to Mallows, or Gaussian to Student-$t$ noise, can compute the same
+two objects on their own data tomorrow, and will know before fitting
+whether the comparison can matter.
 
 % ==================================================================
-\section{Data and pre-registered protocol}\label{sec:data}
+\section{The case study: data and protocol}\label{sec:data}
 
-\paragraph{Data.} The largest public Arena battle log: $1{,}799{,}991$
-anonymous pairwise battles, $129$ models, sub-second timestamps,
-2023-04-24 to 2024-08-14; the platform's deduplication retains
-$1{,}670{,}250$, which all fits use. Outcomes are \{A wins, B wins, tie,
-tie (both bad)\}. Quality ties are $20.45\%$ of non--both-bad votes over
-the full period, up from $13.1\%$ in the first three months---a drift
-that recurs throughout. The replication set is the 2025 release:
-$135{,}634$ battles, $53$ models, fourteen weeks
-(Section~\ref{sec:repl}).
+Our main data is the largest public Arena battle log: 1,799,991
+anonymous pairwise battles across 129 models, timestamped to the
+second, from April 2023 through August 2024. The platform's own
+deduplication retains 1,670,250 battles, and all fits use that
+subset. Outcomes are a win for either side, a tie, or a tie marked
+``both bad.'' Quality ties are 20.45 percent of the votes that are
+not both-bad, up from 13.1 percent in the first three months, a
+drift that will matter repeatedly. The replication set is the 2025
+release: 135,634 battles across 53 models over fourteen weeks.
 
-\paragraph{Pipeline validation.} Refitting BT at the published
-leaderboard's own timestamp reproduces the published ratings to MAE
-$0.18$ Elo points (Spearman $0.99997$, all $128$ models). Across ten
-published BT-era snapshots the era-appropriate variant achieves MAE
-$0.18$--$1.01$ on nine of ten; the tenth (2024-04-03) is an unexplained
-outlier at $2.26$, reported rather than dropped.
+Before comparing anything we verified that the pipeline reproduces
+production. Refitting Bradley--Terry at the published leaderboard's
+own timestamp reproduces the published ratings to a mean absolute
+error of 0.18 Elo points with Spearman correlation 0.99997 across all
+128 published models. Extending the check to ten published snapshots
+spanning nine months, the era-appropriate variant achieves between
+0.18 and 1.01 Elo points on nine of ten; the tenth remains an
+unexplained outlier at 2.26, which we report rather than drop.
 
-\paragraph{Thresholds.} Statistical significance is free at
-$n \approx 10^6$, so verdicts use a derived \emph{minimum practical
-difference}. For decisive calibration: a uniform $10$-Elo-point gap
-error ($\epsilon = 10\ln 10/400$ nats) costs
-$\tfrac12 p(1-p)\epsilon^2 = 4.1\times10^{-4}$ at a toss-up, so
-$\text{MPD}_3 = 4\times10^{-4}$ nats/vote. For trinomial tie
-calibration: a one-point error in $\Pr(\text{tie})$ at the observed
-$\sim\!20\%$ level gives $\text{MPD}_4 = 3\times10^{-4}$. Sub-MPD
-effects are practically equivalent regardless of significance.
+Verdicts need a threshold, because at a million votes statistical
+significance is free. We derive a minimum practical difference from a
+deployment-meaningful error. Leaderboard consumers read ratings at
+roughly ten-Elo-point granularity; a uniform ten-point error in every
+matchup translates to an expected excess log loss of $4 \times
+10^{-4}$ nats per vote at a toss-up, and that is our threshold for
+decisive calibration. The analogous computation for tie prediction,
+a one-point error in tie probability at the observed twenty percent
+tie rate, gives $3 \times 10^{-4}$. Differences below threshold are
+practically equivalent no matter how significant.
 
-\paragraph{Gates and verdicts.} The full pipeline passed synthetic
-ground-truth gates before real data: correct-sign detection at true
-effects down to $0.3\times$MPD, correct positive calls at $\geq$MPD,
-no false positives in sub-MPD worlds, tie-parameter recovery within
-$10\%$. One gate finding matters later: under high parameter noise, a
-\emph{correctly specified} steep link loses held-out to misspecified BT
-($-1.41\times$MPD)---plugin predictions from steep links are
-overconfident; bootstrap-calibrated standard errors (Fisher deflated by
-the measured $0.80$; $\rho = 0.983$ against the published bootstrap)
-showed this reversal is inactive at our pooled noise levels. Verdicts
-come from a fixed classifier over thirteen rolling monthly windows
-(cumulative training, next-month testing): \emph{positive} needs
-$|\bar\Delta| \geq \text{MPD}$, ten-of-thirteen sign consistency, and a
-window-cluster bootstrap CI (effective $N = 13$, always stated)
-excluding zero; \emph{equivalence} needs the CI inside
-$(-\text{MPD},+\text{MPD})$, with significant sub-MPD leans reported as
-leans, never wins; anything else is \emph{inconclusive}. Post-hoc
-analyses are labeled and never override a pre-registered verdict.
-Machinery ablations (labeled) confirm the apparatus is not doing the
-work: pooled CIs move by under $0.004\times$MPD across bootstrap sizes
-$10^3$--$5\times10^4$; link curves are invariant to lattice resolution
-(to $10^{-15}$ in the half-width, $3\times10^{-4}$ in the gap grid, with
-full-population refits identical to five decimals); and the profiled tie
-width moves by under $0.6\%$ across profile-grid densities.
-Models absent from training are unscoreable and counted:
-$24.8$--$75.8\%$ of decisive test votes per window, a deployment fact
-in its own right.
+The protocol then fixes everything that could be fixed in advance.
+The full pipeline had to pass synthetic gates before touching real
+outcomes: it detected true effects down to a third of threshold with
+correct sign, called a positive only when one existed, recovered tie
+parameters within ten percent, and made no false calls in any world
+whose true effect was below threshold. One gate result matters later:
+in a high-noise synthetic world, a correctly specified steep link
+loses held-out to a misspecified logistic, because point-estimate
+predictions from steep links are overconfident under parameter noise;
+calibrated standard errors showed this reversal is inactive at our
+data's pooled noise levels. Real-data verdicts come from a fixed
+classifier over thirteen rolling monthly windows, training
+cumulatively and testing on the following month. A positive verdict
+requires the pooled effect to clear threshold, ten of thirteen
+windows to agree in sign, and a window-cluster bootstrap interval,
+whose effective sample size is thirteen and is always stated, to
+exclude zero. Equivalence requires the interval to sit inside the
+threshold band, and significant leans below threshold are reported as
+leans, never as wins. Anything else is inconclusive and says so.
+Post-hoc analyses are labeled and never override a pre-registered
+verdict. Machinery ablations confirm the apparatus is not doing the
+work: pooled intervals move by under 0.004 threshold units across
+bootstrap sizes from one thousand to fifty thousand, link curves are
+invariant to lattice resolution at machine precision, and the
+profiled tie width moves by under one percent across profile grids.
+Finally, models absent from training are unscoreable and counted:
+they are 24.8 to 75.8 percent of next-month decisive votes, a number
+that belongs in the budget rather than a footnote.
 
 % ==================================================================
-\section{Results}\label{sec:results}
+\section{What the audit found}\label{sec:results}
 
-\subsection{Stability: rankings do not move differently}\label{sec:rq1}
+\subsection{Rankings do not move differently}\label{sec:rq1}
 
-When new models enter and the leaderboard refits, whose incumbent
-rankings move less? For each adjacent checkpoint pair we fit both
-methods on identical cumulative data and compare incumbent rankings
-($\geq 1000$ votes; an all-models variant matches throughout).
+The first worry about a growing pool is churn: new models enter, the
+leaderboard refits, and incumbents shuffle. If the logistic link were
+straining against reality, one might expect its refits to shuffle
+incumbents more than a flexible link's. So for each adjacent pair of
+monthly checkpoints we fit both methods on identical cumulative data
+and compare how each ranks the incumbents, defined as models with at
+least a thousand votes; an all-models variant behaves identically.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_rq1.pdf}
-\caption{Month-over-month incumbent ranking stability (Kendall
-$\tau_b$) for BT and the lattice link. The curves are statistically
-indistinguishable---median paired difference $+0.00026$---while both
+\caption{Month-over-month stability of incumbent rankings, measured
+by Kendall's $\tau_b$, for the two methods across thirteen refit
+windows. The curves are statistically indistinguishable, and both
 improve together as the pool matures. Source:
 \texttt{rq1\_metrics.csv}.}
 \label{fig:rq1}
 \end{figure}
 
-The answer is a null with nothing hiding in it. Median paired
-$\tau_b$ difference $+0.00026$; the lattice better in $7$ windows, worse
-in $4$, tied in $2$; means $0.98469$ versus $0.98358$; the largest
-single-window difference is $0.00713$. The same picture holds at all
-three lattice widths, both horizons, both incumbent sets. No incumbent
-moved more than five rank positions in any window under either method,
-and slope-matched ability drift is $1.70$--$1.77$ Elo-equivalent points
-per month for every method. Meanwhile stability itself varies from
-$\tau_b = 0.968$ to $0.997$ across windows as the pool matures---roughly
-two orders of magnitude more than any between-method difference. The
-operative lever is sample size, not link family. A labeled post-hoc
-check found no modulation by entrant count or entrant vote share (all
-$|\rho| \leq 0.37$, $n=13$).
+Nothing separates them. The median paired difference in Kendall's
+$\tau_b$ is $+0.00026$; the lattice is more stable in seven windows,
+less in four, tied in two; the means are 0.98469 and 0.98358; the
+largest single-window difference is 0.00713. The picture repeats at
+all three lattice widths, at one-month and three-month horizons, and
+for both incumbent definitions. No incumbent moved more than five
+positions in any window under either method, and ability drift per
+month is 1.70 to 1.77 Elo-equivalent points for every method. The
+informative contrast in Figure~\ref{fig:rq1} is vertical, not
+between the curves: stability itself climbs from $\tau_b$ of 0.968
+to 0.997 as the pool matures, a swing two orders of magnitude larger
+than any between-method difference. Stability is governed by sample
+size, not by link. That is the budget's first entry, and it is an
+estimation entry.
 
-Rankings do not move differently. Section~\ref{sec:ceiling} predicted
-why: where the data live, these links barely differ. That prediction
-can be tested directly, with no fitting at all.
+The ceiling predicted this: where the data live, the links barely
+differ. That prediction can be checked directly, without fitting any
+abilities at all.
 
-\subsection{Link shape: the ceiling, confirmed without fitting}
-\label{sec:rq2b}
+\subsection{The ceiling, confirmed without fitting}\label{sec:rq2b}
 
-Every gap link must satisfy triple additivity. For each of $786$ dense
-stable triples (legs $\geq 100$ decisive votes inside 60-day blocks,
-members present throughout), the standardized residual
+Any gap link makes a prediction that overdetermines the data. If the
+link is $F$, then for any three models the inverted head-to-head
+rates must add up: $F^{-1}(p_{AC})$ should equal $F^{-1}(p_{AB}) +
+F^{-1}(p_{BC})$. How badly a triple violates this, scaled by its
+sampling noise, measures shape misfit in a way that treats every
+link fairly. We compute the standardized residual
 \begin{equation}\label{eq:zstat}
 z = \frac{F^{-1}(\hat p_{AC}) - F^{-1}(\hat p_{AB}) -
 F^{-1}(\hat p_{BC})}{\sqrt{v_{AB}+v_{BC}+v_{AC}}},
 \qquad
 v_{XY} = \frac{\hat p(1-\hat p)}{n_{XY}\,[F'(F^{-1}(\hat p))]^2},
 \end{equation}
-should be standard normal if the link shape is right and preferences
-are stable. Mean $z^2$ measures shape misfit scale-invariantly, so the
-links compete fairly.
+for each of 786 dense stable triples, meaning all three pairings
+have at least a hundred decisive votes inside a sixty-day block and
+all three models are present throughout it. If the link's shape is
+right and preferences hold still, $z$ is standard normal and the
+mean of $z^2$ is one.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_rq2b.pdf}
-\caption{Mean squared triple-additivity residual per 60-day block, per
-link. The four links are inseparable---their spread matches the test's
-synthetically measured no-power band---while two blocks show a shared
-excess no link explains (Section~\ref{sec:anomaly}). Source:
+\caption{Mean squared additivity residual per sixty-day block, per
+link. The four links move together, inside the test's measured
+resolution, while two blocks show a shared excess that no link
+explains and that Section~\ref{sec:anomaly} takes up. Source:
 \texttt{rq2b\_blocks.csv}.}
 \label{fig:rq2b}
 \end{figure}
 
-Pooled mean $z^2$: logit $1.202$; lattice $1.231$, $1.252$, $1.279$
-across widths. Synthetic calibration passed (true-link $z^2 =
-1.02$--$1.03$) and showed the statistic cannot separate these links at
-real gap scales: in both generating directions the four links differ by
-$0.01$--$0.04$, the same order as the real spread. This is the effect
-ceiling of Eq.~\eqref{eq:ceiling} re-derived by an entirely different
-instrument---within-window ranking consistency, no held-out scoring, no
-plugin estimates, no time splits---and it reaches the same verdict:
-\emph{at the gaps real matchups occupy, no member of this family is
-distinguishable from the logistic.} Two structurally different tests
-agreeing is stronger than either alone.
+The pooled means are 1.202 for the logistic and 1.231, 1.252, and
+1.279 for the lattice widths. Synthetic calibration passed, with
+true links scoring 1.02 to 1.03, and the same synthetic runs
+measured the test's resolution: worlds generated by either family
+separate the four links by only 0.01 to 0.04, which is the same
+order as the real spread. So the test says what the ceiling said,
+through an entirely different instrument, one that involves no
+held-out scoring, no point estimates, and no time splits. At the
+gaps real matchups occupy, no member of this family is
+distinguishable from the logistic. Two independent derivations of
+the same bound are better than one.
 
-Shape is settled. But calibration on \emph{future} votes could still
-differ: estimation noise interacts with steepness even when shapes
-agree in-sample. That is the next question.
+Shape, then, is settled in-sample. Calibration on future votes could
+still differ, because estimation noise interacts with steepness even
+when shapes agree. That is the next entry.
 
-\subsection{Calibration: equivalent --- and a cautionary tale}
+\subsection{Calibration: equivalent, and a cautionary tale}
 \label{sec:rq3}
 
-Both methods are fit per window in half-tie mode and scored by log loss
-on the shared scoreable decisive votes of the following month. Sign
-convention: $\Delta = \ell\ell_{\text{BT}} - \ell\ell_{\text{lattice}}$;
-positive favors the lattice.
+We fit both methods per window in the production tie treatment and
+score log loss on the following month's decisive votes, on the
+shared set both can score. The sign convention makes positive favor
+the lattice.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_rq3.pdf}
-\caption{Per-window calibration delta (primary width $u=0.5855$), in
-MPD units. Every window of thirteen lies inside the
+\caption{Per-window calibration difference at the primary width, in
+threshold units. All thirteen windows lie inside the
 practical-equivalence band. Source:
 \texttt{rq3\_window\_table\_u0.5855.csv}.}
 \label{fig:rq3}
 \end{figure}
 
-\textbf{Verdict: equivalence, with a sub-practical BT-leaning lean, at
-all three widths.} Pooled $-0.121\times$MPD, CI $(-0.191, -0.074)$ at
-the primary width; $-0.148$ $(-0.201,-0.116)$ and $-0.226$
-$(-0.321,-0.164)$ at the others; BT better in $12$--$13$ of $13$
-windows; \emph{every} window inside the band
-(Figure~\ref{fig:rq3}; largest $0.63\times$MPD). The lean is real and
-below deployment relevance---per protocol it is reported as a lean,
-not a win. It is largest at the steepest width but not monotone across
-the two shallower ones: directional, qualified evidence for the
-plugin-overconfidence mechanism of Section~\ref{sec:data}. The
-pre-registered strata agree. Recent-entrant votes: $-0.110\times$MPD,
-CI $(-0.172, -0.052)$. And in the one location where the pre-analysis
-said a lattice-truth effect could clear MPD---the early high-noise
-recent-entrant stratum, predicted $+1.58\times$MPD under
-lattice-truth---the measurement is $-0.275\times$MPD, CI
-$(-1.169, +0.040)$: the prediction is excluded decisively.
+The verdict is equivalence with a lean. Pooled, the lattice loses by
+0.121 threshold units at the primary width, by 0.148 and 0.226 at
+the others, with intervals inside the band and excluding zero, and
+with Bradley--Terry ahead in twelve or thirteen of thirteen windows.
+Every window sits inside the band; the largest is 0.63
+(Figure~\ref{fig:rq3}). The lean is real, it is below deployment
+relevance, and per protocol we report it as a lean. It is largest at
+the steepest width but not monotone across the shallower two, which
+is directional and only directional support for the overconfidence
+mechanism from Section~\ref{sec:data}. The pre-registered strata
+agree with the whole: recent entrants show the same sub-practical
+lean, and in the one stratum where the pre-analysis said a
+lattice-truth effect could clear threshold, the prediction of
+$+1.58$ is excluded decisively, with the measurement at $-0.275$ and
+an interval from $-1.169$ to $+0.040$.
 
-Two shared measurements dwarf all of this. Reliability slopes on
-held-out predictions are $1.46$ for every method: everything is
-underconfident on next month's votes by the same factor, a
-nonstationarity no link addresses---and uncertainty-integrated
-(posterior-predictive-style) prediction does not help, shifting the
-pooled delta only from $-0.121$ to $-0.117\times$MPD and reliability to
-$1.46$ (labeled post-hoc; Gauss--Hermite over calibrated standard
-errors). Coverage is worse: up to three quarters of next-month decisive
-votes involve an unscoreable newcomer. Drift and coverage bind;
-the link does not.
+Two shared measurements swamp all of the above, and they are the
+budget's drift and coverage lines. Every method's held-out
+predictions are underconfident by the same factor: recalibration
+slopes are 1.46 for all four models, and integrating parameter
+uncertainty into the predictions barely moves anything, shifting the
+pooled difference from 0.121 to 0.117 and the slopes to 1.46. The
+miscalibration is the world moving, not the estimator misfiring. And
+up to three quarters of next-month decisive votes involve a model
+with no training votes at all, which no link, prior, or smoothing
+scheme can score.
 
 \subsubsection{The episode that wasn't}\label{sec:artifact}
 
-Our first run of this experiment told a better story, and it was wrong.
-It returned \emph{inconclusive}: twelve sub-practical windows plus one
-at $+5.8\times$MPD, traced to a single model that entered with two
-training votes, which BT extrapolated to mid-table
-($\hat\theta = +0.43$) while the steeper lattice held near zero. We
-initially read this as implicit shrinkage---a steep link regularizing
-cold starts. A reviewer-driven follow-up asked whether explicit ridge
-regularization could reproduce the effect, and its $\lambda \approx 0$
-baseline refused to match our own stored table. The audit that followed
-found the cause: our earlier lattice implementation paired
-piecewise-linear log-likelihood values with smoothed gradients, and
-that inconsistency---originally noticed only as an optimizer
-nuisance---had effectively clamped near-zero-data models in the curve
-tails. With consistent interpolation the episode vanishes
-(old code $+5.792\times$MPD, corrected $+0.017$, byte-identical
-everything else; the corrected lattice places the cold-start model at
-$+0.29$, barely below BT's $+0.38$), the unfiltered result equals the
-old cold-start-filtered one, and the verdict above is what remains.
-All synthetic gates were re-certified under the corrected code.
+Our first run of this experiment told a more exciting story, and the
+story was false in an instructive way. The original verdict was
+inconclusive: twelve quiet windows and one loud one, in which a
+model that had entered with two training votes was extrapolated to
+mid-table by Bradley--Terry while the steeper lattice held it near
+zero, and Bradley--Terry paid roughly 68 nats when the model was
+mass-sampled the next month and performed poorly. We read this as
+implicit shrinkage, a steep link quietly regularizing cold starts,
+and wrote it up as a mechanism.
 
-The retraction sharpened the science. \emph{Steepness is not implicit
-regularization}---but explicit regularization works exactly as the
-false story promised: ridge on BT shrinks the cold-start model's
-estimate from $+0.38$ to $0.00$ over $\lambda \in [1,3]$ and improves
-that window by ${\sim}5.5\times$MPD, while established models move by
-at most $0.015$. Cold-start protection is real, cheap, and
-link-independent. And the episode is a working demonstration of the
-protocol: pre-registered baselines plus one skeptical follow-up caught
-an artifact that a lone headline run would have published.
+The mechanism did not survive its own follow-up. Asked whether
+explicit ridge regularization could reproduce the protection, we ran
+a ridge sweep whose near-zero-penalty baseline refused to match our
+own stored table. The audit that followed located the cause in our
+earlier lattice implementation, which paired piecewise-linear
+log-likelihood values with smoothed gradients; the inconsistency,
+first noticed only as an optimizer nuisance, had been clamping
+near-zero-data models in the far tails of the curve. With consistent
+interpolation the episode vanishes. The old code reproduces the loud
+window exactly, at $+5.792$ threshold units; the corrected code puts
+it at $+0.017$; everything else is byte-identical. The corrected
+lattice places the cold-start model at $+0.29$, essentially where
+Bradley--Terry puts it. All synthetic gates were re-certified under
+the corrected code, and the equivalence verdict above is what
+remains.
 
-Calibration, then, cannot separate the families. By
-Theorem~\ref{thm:orth}, ties are the one outcome channel where they
-differ by construction. Is that difference measurable?
+The retraction sharpened the finding. Steepness is not implicit
+regularization. But explicit regularization does exactly what the
+false story promised: ridge on Bradley--Terry shrinks the cold-start
+model's estimate from $+0.38$ to zero as the penalty grows from one
+to three, improves that window by about 5.5 threshold units, and
+moves established models by at most 0.015. Cold-start protection is
+real, cheap, and belongs to the estimation line of the budget, not
+to the model family. We kept the episode in the paper because it
+demonstrates the method: a pre-registered baseline and one skeptical
+follow-up caught an artifact that a single headline run would have
+published.
 
-\subsection{Ties: provably different shapes, indistinguishable fit ---
-and the price of entanglement}\label{sec:rq4}
+Calibration cannot separate the families either. By
+Theorem~\ref{thm:orth}, ties are the one channel where they differ
+by construction, so ties get the last word.
 
-Both models are fit per window by trinomial likelihood---abilities plus
-one profiled tie parameter each---and scored on next month's
-\{win, loss, tie\} outcomes. Dead heats use the platform's quality-tie
-label; ``both bad'' marks responses below an absolute bar, not close
-draws, and enters only the stress test below. Sign convention:
-$\Delta = \ell\ell_{\text{Davidson}} - \ell\ell_{\text{lattice}}$;
-positive favors the lattice; $\text{MPD}_4 = 3\times10^{-4}$.
+\subsection{Ties: different shapes, identical fit, and the price of
+entanglement}\label{sec:rq4}
 
-\textbf{Verdict: inconclusive, by one episode.} Pooled
-$+0.838\times$MPD, CI $(+0.017, +2.542)$; lattice better in $10/13$
-windows, but the estimate is carried by a single window at
-$+9.55\times$MPD. Decomposition attributes that window to the tie
-channel on near-peer, largely same-family pairs (tie votes $+407$ nats
-versus $-301$ decisive; sibling matchups such as
-\texttt{gpt-4-0314} vs.\ \texttt{gpt-4-1106-preview} lead), where the
-window's tie rate ran high and the lattice's tie-curve shape briefly
-paid off. A cold-start filter does not touch it ($+0.861\times$MPD):
-this episode, unlike Section~\ref{sec:artifact}'s, is real data
-behaving unusually for one month---it immediately precedes one of the
-two anomaly eras of Section~\ref{sec:anomaly}, a coincidence we note
-without claiming.
+Both models now fit the full three-outcome likelihood per window,
+abilities plus one profiled tie parameter each, and are scored on
+the following month's wins, losses, and ties. Dead heats use the
+platform's quality-tie label; the both-bad label marks responses
+below an absolute bar rather than close draws, and appears only in
+the stress test below. Positive again favors the lattice.
+
+The pooled verdict is inconclusive, and this time the episode is
+real data. The estimate is $+0.838$ threshold units with an interval
+from $+0.017$ to $+2.542$, the lattice ahead in ten of thirteen
+windows, and one window at $+9.55$ carrying the total. That window
+decomposes cleanly: its tie votes contribute $+407$ nats to the
+lattice against $-301$ on decisive votes, led by near-peer pairs
+from the same families, the kind of sibling matchups where ties are
+common and the lattice's tie curve briefly paid off. A cold-start
+filter does not touch it, so this is one month of unusual voting
+rather than an estimation pathology; it immediately precedes one of
+the two anomaly eras described next, a coincidence we note and do
+not press.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_rq4_curves.pdf}
-\caption{Fitted tie curves versus empirical tie rates, pooled with vote
-weights, each model binned by its own fitted gaps. The mechanisms agree
-at the origin, decay at structurally different rates, and the region
-where they separate (shaded) carries under $10\%$ of votes. Source:
-\texttt{rq4\_tie\_curve\_bins.csv}.}
+\caption{Fitted tie curves against empirical tie rates, pooled with
+vote weights, each model binned by its own fitted gaps. The
+mechanisms agree at the origin and decay at structurally different
+rates, and the region where they separate, shaded, carries under ten
+percent of votes. Source: \texttt{rq4\_tie\_curve\_bins.csv}.}
 \label{fig:rq4curves}
 \end{figure}
 
-\textbf{Different shapes the data cannot discriminate.} The fitted
-mechanisms imply nearly identical at-zero tie mass in every window
-(within ${\sim}0.01$) but structurally different bands: the tie
-probability halves at $2.84$--$2.93$ ability units under Davidson's
-slow decay versus $1.67$--$1.68$ under the lattice's overlap decay---a
-stable $1.7\times$ difference. Held-out fit cannot pick a side
-(vote-weighted binned RMS $0.0225$ vs $0.0237$), because real matchups
-concentrate where the shapes agree (Figure~\ref{fig:rq4curves}). The
-parameters $\nu$ and $u$ carry genuinely different shape content---they
-are not relabelings---but this dataset cannot say which shape is right.
-That is a more precise statement than ``equivalent,'' and we intend the
-distinction.
+The structural result is sharper than the verdict. The two fitted
+mechanisms imply nearly identical tie probability at a toss-up in
+every window, within about 0.01 of each other, yet their bands have
+genuinely different shapes: the tie probability halves within 1.67
+to 1.68 ability units under the lattice's overlap decay, against
+2.84 to 2.93 under Davidson's slow decay, a stable factor of 1.7.
+Held-out fit cannot tell them apart, with binned errors of 0.0225
+and 0.0237, because votes concentrate where the shapes agree
+(Figure~\ref{fig:rq4curves}). The two tie parameters are not
+relabelings of one quantity. They carry different shape content that
+this dataset simply cannot adjudicate, which is a more precise
+statement than calling them equivalent.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig_rq4_traj.pdf}
-\caption{Drift trajectories. \textbf{(a)} Per-window profiled tie
-parameters rise together ($\hat\nu\!: 0.376 \to 0.559$;
-$\hat u\!: 0.594 \to 0.803$), tracking the tie-share drift
-($13.1\% \to 20.45\%$); the endpoints independently reproduce two
-earlier one-shot profile fits (dotted). \textbf{(b)} The implied
-band-width difference is stable throughout. Source:
+\caption{Tie parameters drift together. Panel (a): per-window
+profiled parameters rise as the platform's tie share rises, and the
+endpoints reproduce two profile fits computed independently months
+earlier, shown dotted. Panel (b): the shape difference between the
+two bands is stable throughout. Source:
 \texttt{rq4\_param\_trajectories.csv}.}
 \label{fig:rq4traj}
 \end{figure}
 
-\textbf{Drift, cross-validated three ways.} Both tie parameters rise
-near-monotonically across the sixteen months
-(Figure~\ref{fig:rq4traj}), tracking the raw tie-share drift; any
-single pooled tie parameter averages a moving target, which is why
-every experiment profiles per window. The windowed trajectory's
-endpoints reproduce, to ${\sim}0.01$, two estimates computed
-independently by a different procedure months earlier---three
-estimation paths agreeing on one drifting quantity.
+Both tie parameters also drift, and the drift cross-validates. Over
+the sixteen months the profiled Davidson parameter rises from 0.376
+to 0.559 and the lattice width from 0.594 to 0.803, tracking the
+raw tie share as it climbs from 13.1 to 20.45 percent
+(Figure~\ref{fig:rq4traj}). Any single pooled tie parameter would
+average a moving target, which is why every experiment profiles per
+window. As an internal check, the windowed trajectory's endpoints
+reproduce, to about 0.01, two estimates computed months earlier by
+a different procedure on the early and full samples.
 
-\textbf{The price of entanglement, measured.} Theorem~\ref{thm:orth}
-says Davidson's $\nu$ cannot touch its decisive link; the lattice's $u$
-must. Forcing both models to absorb both-bad-scale tie mass
-(${\sim}35\%$ of votes) makes this concrete: the lattice width pins at
-its pre-specified profile ceiling in $11/13$ windows---not for want of
-tie capacity but because its narrow band must over-widen to cover
-large-gap ties---and on identical held-out \emph{decisive} votes its
-log loss degrades by $+4.75\times$MPD (ceiling-window mean) versus
-$+2.50$ for the Davidson control, which isolates the shared
-ability-refit effect since its decisive link provably cannot move. The
-lattice-specific excess, ${\approx}2.2\times$MPD, is the measured cost
-of buying tie mass with decisive accuracy. Qualifications: modest,
-window-heterogeneous, and the profile boundary was never stress-tested
-at this tie scale; the tie/both-bad category decision rests on its
-conceptual grounds, not on this result.
+Finally, entanglement has a measurable price.
+Theorem~\ref{thm:orth} says Davidson's tie parameter cannot touch
+its decisive predictions, and the lattice's must. Forcing both
+models to absorb both-bad-scale tie mass, about 35 percent of
+votes, makes the difference concrete. The lattice width pins at its
+profile boundary in eleven of thirteen windows, not for lack of tie
+capacity but because its narrow band must over-widen to reach
+large-gap ties, and on identical held-out decisive votes its log
+loss degrades by 4.75 threshold units against 2.50 for the Davidson
+control, which isolates the shared effect of refitting under a
+changed outcome mix because its decisive link provably cannot move.
+The excess, roughly 2.2 units, is the measured cost of buying tie
+mass with decisive accuracy. The measurement is modest and
+heterogeneous across windows, and the profile boundary was never
+stress-tested at this tie scale, so we hold it lightly; the
+conceptual point is Theorem~\ref{thm:orth}'s, and the measurement
+illustrates it.
 
-\subsection{Replication: a second dataset}\label{sec:repl}
+\subsection{The same audit on a second dataset}\label{sec:repl}
 
-Every design above, transported verbatim to the 2025 Arena release
-($135{,}634$ battles, $53$ models, twelve weekly windows; labeled
-post-hoc generalization since the transport itself was not
-pre-registered): full-population fits agree at Spearman $0.999839$ with
-a maximum rank move of one; the calibration comparison returns
-equivalence with the same sub-practical BT lean at all three widths
-($-0.084$/$-0.175$/$-0.176\times$MPD; BT better in $11/12$ windows);
-the tie comparison is again lattice-leaning inconclusive
-($+0.779\times$MPD, CI $(+0.382, +1.093)$); and the profiled width
-barely moves over fourteen weeks ($0.689 \to 0.693$), confirming the
-tie-propensity drift as a long-horizon phenomenon. Same nulls, same
-lean directions, same structural picture, different era and pool.
-
-% ==================================================================
-\section{The anomaly: excess dispersion no link explains}
-\label{sec:anomaly}
-
-One signal in this dataset survives every attribution attempt, and we
-promote it deliberately: in two specific eras, \emph{every} link we
-tested fails triple additivity the same way. Blocks
-2023-08-22$\to$10-21 and 2023-12-20$\to$2024-02-18 show mean
-$z^2 = 1.57$ and $1.65$, with $13$--$14\%$ of triples beyond $|z|>2$
-against a nominal $4.6\%$; other blocks sit near calibration. Half-block
-splits localize the first episode to roughly late September--October
-2023 and show the second persisting undiminished in both halves, so
-within-window drift is not the mechanism. Ruled out systematically: the
-platform's deduplication transition (overlaps only the cleanest block);
-entry activity (the excess blocks have \emph{fewer} entries and lower
-entrant vote share---anti-correlated); language mix, judge counts,
-votes per judge, tie share, duplicated-prompt share (none separates
-excess from clean); single-model artifacts (excess triples span models
-near base rates). Because the excess is invariant across link shapes,
-it is a property of the vote-generating process itself.
-
-Two candidate explanations remain live. \emph{Judge-population
-composition shifts}: a mixture of individually consistent judges
-violates additivity in aggregate. \emph{Genuine context effects}: votes
-influenced by what else occupies the pool---the classical IIA-violation
-mechanism, appearing here as a shared failure of every IIA-\emph{like}
-model rather than a differential one. Distinguishing them needs
-per-judge panel structure or listwise data that public releases do not
-provide. We had pre-registered an entry-proximity event study for
-exactly this purpose and descoped it on evidence: the excess is
-anti-correlated with entries, so an entry-based instrument is
-structurally wrong for it. We state the anomaly as an open question,
-and as a concrete data request to preference platforms.
+Every design above transports verbatim to the 2025 release, with
+twelve weekly windows standing in for thirteen monthly ones; the
+transport itself was not pre-registered and is labeled accordingly.
+The full-population fits agree at Spearman 0.999839 with a maximum
+rank move of one. The calibration comparison again returns
+equivalence with a sub-practical lean toward Bradley--Terry at all
+three widths, at 0.084, 0.175, and 0.176 threshold units, with
+Bradley--Terry ahead in eleven of twelve windows. The tie comparison
+is again a lattice-leaning inconclusive, at $+0.779$ with an
+interval from $+0.382$ to $+1.093$. And the profiled width barely
+moves across fourteen weeks, from 0.689 to 0.693, which confirms the
+tie drift as a long-horizon phenomenon rather than a constant churn.
+Different era, substantially different model pool, same nulls, same
+lean directions, same structure.
 
 % ==================================================================
-\section{Discussion}\label{sec:discussion}
+\section{The anomaly}\label{sec:anomaly}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/fig_concept.pdf}
-\caption{The error budget of this deployment, schematically. Link
-choice is bounded above by construction; episodes, shared drift, and
-cold-start coverage each exceed it by one to two orders of magnitude in
-their own terms. Annotated values are measured; bar lengths are not to
-scale.}
-\label{fig:concept}
-\end{figure}
+One signal in this data survives every attribution we attempt, and
+it deserves its own section precisely because no model we test
+explains it. In two specific eras, every link fails triple
+additivity the same way. The blocks beginning in late August and
+late December of 2023 show mean squared residuals of 1.57 and 1.65,
+with 13 to 14 percent of triples beyond two standard units against
+a nominal 4.6, while other blocks sit near one. Splitting blocks in
+half localizes the first episode to roughly late September and
+October and shows the second persisting undiminished in both
+halves, which rules out gradual preference drift within the window.
+We then checked the platform's deduplication transition, which
+overlaps only the cleanest block; entry activity, which is
+anti-correlated with the excess, since the loud blocks have fewer
+entrants and lower entrant vote share than the quiet ones; language
+mix, judge counts, votes per judge, tie share, and duplicated-prompt
+share, none of which separates loud from quiet; and concentration
+in particular models, which is absent. Because the excess is
+identical across link shapes, it is a property of the votes, not of
+any model.
 
-\paragraph{The general principle.} Every result above is one theme
-instantiated: richer links buy approximation accuracy, and this system's
-errors are not approximation errors. Figure~\ref{fig:concept} draws the
-budget. The quantity a link controls is bounded at a fraction of one
-practical unit by Eq.~\eqref{eq:ceiling}; everything that actually
-limits ranking quality---shared drift miscalibration ($1.46\times$
-underconfidence for every method), cold-start coverage (up to
-three-quarters of votes unscoreable), single-month episodes (up to
-${\sim}10\times$MPD)---lives on other axes entirely. The statistical
-lesson travels beyond leaderboards. Reward models for RLHF are BT by
-construction, and listwise or richer-link refinements of the preference
-objective~\citep{liu2024lipo} face the same arithmetic: where comparison
-data concentrates near toss-ups and the candidate pool churns,
-estimation error, drift, and coverage dominate any link-shape
-refinement. Recommendation and matchmaking systems consuming implicit
-pairwise feedback, and econometric choice models fit to large
-observational panels, inherit the same check-list: compute the ceiling
-before the comparison. Expressiveness is the right investment only when
-approximation error is the binding constraint, and in evolving
-preference systems it rarely is.
+Two explanations remain live. The judge population may shift in
+composition, since a mixture of individually consistent judges
+violates additivity in aggregate. Or context may genuinely act on
+votes, with judgments depending on what else occupies the pool,
+which is the classical independence violation appearing as a shared
+failure of every model that assumes it away. Separating the two
+requires per-judge structure or listwise comparisons, neither of
+which public releases provide. We had pre-registered an event-study
+design for exactly this question and descoped it on evidence, since
+an instrument built on entry proximity is the wrong tool for a
+phenomenon anti-correlated with entries. We leave the anomaly as an
+open question, and as a concrete request to preference platforms:
+judge panel structure and occasional listwise comparisons would let
+someone answer it, and would also make the multi-entrant theory we
+deliberately did not test testable at last.
 
-\paragraph{What to do instead.} The audit's constructive findings are
-an ordered to-do list for platform operators. First, cold starts:
-explicit ridge (or any shrinkage prior) on new entrants buys the
-protection that no link provides, at ${\sim}5\times$MPD in the one
-month our data offered a natural experiment, with negligible effect on
-established models. Second, drift: recalibrate predictions against
-recent outcomes---posterior-predictive smoothing of parameter
-uncertainty does not substitute, because the miscalibration is shared
-drift, not plugin overconfidence. Third, ties: if ties matter to the
-product, prefer mechanisms that are orthogonal by construction
-(Theorem~\ref{thm:orth}); a single-width dead-heat band pays for tie
-mass with decisive accuracy. Only after all that, consider the link.
+% ==================================================================
+\section{Reading the budget}\label{sec:discussion}
 
-\paragraph{On negative results.} The pre-registration protocol was not
-ornamental. The ceilings set expectations before fitting; the gates
-certified detection power; the fixed classifier refused convenient
-readings twice; and the discipline caught our own numerical artifact
-when one skeptical baseline refused to reproduce a stored table
-(Section~\ref{sec:artifact}). We offer the protocol as the reason these
-nulls are informative rather than disappointing, and the artifact
-episode as the argument for auditing positive stories with the same
-energy as negative ones.
+The budget in Figure~\ref{fig:concept} is the paper's summary. The
+line that model choice controls was bounded by construction at a
+fraction of one practical unit, and sixteen months of audit plus a
+replication never found anything above it. The lines that dominate
+belong to estimation and drift: a shared factor of 1.46
+underconfidence on next-month votes, up to three quarters of votes
+unscoreable for want of any training data, single months in which
+one episode moves a verdict by ten threshold units, and a tie rate
+that drifts by half across the study period. A platform operator
+reading this budget knows the order of work. Get votes onto new
+models faster, and shrink their early estimates explicitly, since
+ridge achieves what no link does. Recalibrate against recent
+outcomes, since the miscalibration is drift and parameter
+uncertainty corrections do not touch it. If ties matter to the
+product, prefer the mechanism whose tie parameter provably leaves
+decisive predictions alone. And only after all of that, think about
+the link.
+
+The generalization is the reason we wrote the paper this way.
+Reward models for RLHF are Bradley--Terry by construction, and
+proposals to enrich the preference objective, listwise or otherwise,
+face the same arithmetic whenever comparisons concentrate near
+toss-ups and the candidate pool churns~\citep{liu2024lipo}.
+Recommendation and matchmaking systems consuming implicit pairwise
+feedback, sports and game rating systems, and econometric choice
+models fit to large observational panels all sit in the same
+position: a simple link under theoretical suspicion, a richer family
+available, and a comparison that can be priced before it is run. The
+principle the budget expresses is old statistics wearing modern
+clothes. Expressiveness buys approximation accuracy, and buying it
+is only rational when approximation error is the binding constraint.
+In large, noisy, evolving preference systems, it is not, and one can
+know that in advance.
+
+We would also defend the audit's conduct as a contribution. The
+ceilings set expectations before any fit. The synthetic gates
+certified that the machinery could detect what it claimed to detect.
+The fixed classifier refused two convenient readings. And the
+protocol caught our own false mechanism when one skeptical baseline
+declined to reproduce a stored number, which is exactly the failure
+mode that makes exciting stories survive into print. Negative
+results earn their keep when the method that produced them can be
+reused, and both halves of ours can.
 
 % ==================================================================
 \section{Limitations}\label{sec:limits}
 
-This paper is not a test of \citet{cotton2021}'s multi-entrant
-coherence theorem; pairwise data cannot exercise it. Conclusions
-concern one platform (two eras of it) and the gap-link families
-compared; TrueSkill-style approximate Bayesian inference was positioned
-but not tested. The ridge demonstration rests on one natural
-experiment. The dose-response evidence for plugin overconfidence is
-directional, not monotone. The entanglement measurement is qualified by
-its untested profile boundary. One validation snapshot remains an
-unexplained outlier. And the anomaly of Section~\ref{sec:anomaly} is
-characterized but not explained---resolving it, like testing field
-coherence, needs data that platforms do not currently release: judge
-panel structure and listwise comparisons.
+The disclaimers that matter most are scope. Nothing here tests the
+multi-entrant coherence property that is Cotton's primary
+contribution, because pairwise data cannot exercise it. Our
+conclusions concern two eras of one platform and the specific
+families compared; TrueSkill-style approximate inference was
+positioned but not run. The ridge demonstration rests on one natural
+experiment. The evidence for the overconfidence mechanism is
+directional rather than monotone. The entanglement measurement leans
+on a profile boundary that was never stress-tested at both-bad
+scale. One validation snapshot remains unexplained. And the anomaly
+is characterized, not solved. Resolving it, like testing coherence,
+waits on data that platforms do not currently release.
 
 % ==================================================================
 \section{Conclusion}
 
-We asked whether a better-motivated choice model improves a real
-preference leaderboard, and built the audit carefully enough to trust
-the answer: no---and provably, almost no such improvement was
-available. One theorem, one ceiling, four pre-registered comparisons,
-one replication, one retracted episode, and one open anomaly later, the
-durable lesson is the one we began with. \emph{Richer models help when
-approximation error dominates estimation error.} In large, noisy,
-evolving preference systems---leaderboards, reward models,
-recommenders---estimation error, nonstationarity, and cold starts
-overwhelm the link function. Spend expressiveness where the errors are.
+We set out to referee a model comparison and ended up pricing it.
+The price, computed before fitting, was a ceiling of a fraction of
+one practical unit, and the audit spent 1.8 million votes, a
+replication, four pre-registered comparisons, one retracted
+mechanism, and one open anomaly confirming that the price was
+right. The comparison itself is settled: for ranking language
+models from pairwise human votes, a richer Thurstonian link buys
+nothing that matters, and the system's real errors come from
+estimation, coverage, and drift. The method is not settled, and
+that is the point. Any proposed jump in model expressiveness can be
+priced the same way, with an effect ceiling on the family
+difference and an error budget for everything else, and the jump is
+worth making only when the ceiling clears the errors that remain.
+Spend expressiveness where the errors are.
 
 \bibliography{refs}
 

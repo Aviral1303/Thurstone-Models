@@ -950,6 +950,97 @@ statement (§5).
 
 ---
 
+## 2026-07-13 — MAJOR CORRECTION: RQ3's episode was a numerical artifact;
+## discovered by the reviewer-driven ridge-BT experiment
+
+**How it surfaced.** Reviewer critique requested a ridge-regularized-BT
+comparison ("is lattice steepness just implicit regularization?"). The
+ridge sweep's λ≈0 baseline on the 2023-11-30 window came out +0.017×MPD —
+contradicting the stored RQ3 table (+5.79×MPD). Attribution test (old
+`lattice_link.py` from the RQ3-era commit dc3db24 under otherwise
+byte-identical code; fit.py diff = 0 lines): **old interpolation
+reproduces +5.792×MPD with lattice θ̂(pplx-7b) ≈ −0.03; HEAD gives
++0.017×MPD with lattice θ̂(pplx-7b) = +0.287.** The Hermite-spline fix
+(commit 5382387, made for L-BFGS stalls AFTER RQ3 ran, BEFORE RQ4 ran) is
+the sole code difference.
+
+**What this means, scientifically.**
+1. The RQ3 outlier episode was an artifact: the old piecewise-linear
+   log-curve values with mutually inconsistent smoothed gradients
+   effectively clamped near-zero-data models in the curve tails. The
+   corrected lattice extrapolates cold-start models nearly like BT
+   (+0.287 vs +0.378).
+2. **The "steepness = implicit shrinkage" empirical case study is
+   RETRACTED as a link property.** The n=1 protective episode belonged to
+   the buggy interpolation, not to the lattice link. (The structural
+   observation that a steeper link needs smaller gaps remains true but
+   produced no measurable protection at HEAD.)
+3. The real, controllable version of the protection exists: **explicit
+   ridge on BT** (scripts/24): λ∈[1,3] shrinks θ̂(pplx) +0.378→~0 and
+   improves that window by ~5.5×MPD, with negligible collateral shift on
+   ≥1000-vote models (≤0.015 at λ=3). Regularization, not link choice, is
+   the lever — which sharpens the paper's thesis rather than weakening it.
+4. RQ4 (ran post-spline), RQ2b (no fitting), and the entanglement
+   diagnostic (post-spline) are unaffected. RQ4's tie-channel outlier and
+   the "same window, different mechanism" RQ3/RQ4 contrast dissolve into:
+   at HEAD, RQ3 has NO episode; RQ4's tie-channel episode stands.
+
+**Re-run campaign at HEAD (all pre-spline tables regenerated):** scripts
+15, 16 (RQ3 + filter), 08 (RQ1), 05/06/10 (synthetic gates re-cert), 07,
+12, 13 (grounding). Early previews: the PP experiment's plugin arm
+(HEAD, scripts/25) shows RQ3-at-HEAD pooled −0.121×MPD CI (−0.191,−0.074),
+every window sub-practical BT-leaning → expected verdict at HEAD:
+**equivalence with sub-practical BT lean** — matching what the post-hoc
+filter had suggested and what the 2025 transport independently shows.
+
+**New results landed this round (all HEAD-valid):**
+- Ridge-BT (scripts/24, labeled post-hoc): episode anatomy above; full
+  13-window grid at λ=1: pooled −0.461×MPD CI (−1.359,−0.109)
+  (ridge-BT better than lattice, driven by the ex-episode window where
+  ridge protects and the corrected lattice does not); λ=10 −0.229,
+  CI (−1.066,+0.167).
+- Posterior-predictive (scripts/25, labeled post-hoc): uncertainty-
+  integrated prediction changes nothing — pooled −0.121→−0.117×MPD;
+  reliability slope 1.455→1.459 both methods. The binding miscalibration
+  is shared drift-underconfidence, which smoothing cannot fix.
+- 2025 generalization (scripts/27/28, pre-registered designs transported):
+  135,634 battles, 53 models, 12 weekly windows. Consistency ρ=0.999839,
+  max rank move 1. RQ3-style: equivalence + sub-practical BT lean at all
+  three units (−0.084/−0.175/−0.176×MPD; 11/13). RQ4-style: lattice-
+  leaning inconclusive (+0.779×MPD CI (+0.382,+1.093)) — the tie-channel
+  lattice lean REPLICATES in direction on an independent era. Tie share
+  17.96%; profiled unit 0.6892 (first 3 weeks) vs 0.6926 (full) — the
+  16-month drift finding is a long-horizon phenomenon, near-absent in 14
+  weeks.
+
+---
+
+## 2026-07-13 — HEAD re-run campaign complete: final verdict set
+
+All pre-spline tables regenerated; gates re-certified (05/06/10 ALL PASS);
+grounding reproduces (0.8002, 0.2045, SE ratio 0.803/ρ 0.983, +1.58
+prediction). Final HEAD verdict set for the paper:
+
+- **RQ1: NULL** — median Δτ_b +0.00026, split 7/4/2, means 0.98469 vs
+  0.98358, max window diff 0.00713 vs window range 0.968→0.997; mags
+  1.70–1.77 Elo-equiv; no >5-rank moves; validation unchanged (BT-only).
+- **RQ3: EQUIVALENCE + sub-practical BT lean** at all units
+  (−0.121/−0.148/−0.226×MPD; CIs in-band excluding 0; 12–13/13 BT-better;
+  ALL 13 windows inside ±MPD, max |window| 0.63). Filter now changes
+  nothing (−0.121/−0.143/−0.223) — no episode exists to remove. Best-case
+  location −0.275×MPD CI (−1.169, +0.040): +1.58 prediction excluded, CI
+  touches zero. Reliability 1.4555–1.4604.
+- **RQ4: unchanged** (post-spline): inconclusive +0.838×MPD via tie-channel
+  window; divergent-band and entanglement results stand.
+- **RQ2b: unchanged** (no fitting).
+- Notable coherence: HEAD-unfiltered RQ3 ≈ old-filtered RQ3 — removing the
+  artifact ≈ removing cold-start votes, confirming the artifact lived
+  exactly in the cold-start fits.
+
+Paper restructure proceeding on these numbers (reviewer critique round).
+
+---
+
 ## 2026-07-10 — Inventory accuracy pass (final housekeeping before outline)
 
 Programmatic verification of every quick-reference number in

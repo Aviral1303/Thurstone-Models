@@ -1,5 +1,12 @@
 # RQ1 Findings — Refit stability under population growth
 
+> **UPDATED AT HEAD (2026-07-13).** Lattice fits were regenerated with the
+> corrected interpolation: the null stands with slightly different
+> statistics — median paired Δτ_b +0.00026 (was +0.00000), split 7/4/2
+> (was 5/3/5), mean τ_b 0.98469 vs BT's unchanged 0.98358. Every
+> conclusion below is unaffected; current numbers: FINDINGS_INVENTORY.md.
+
+
 Written 2026-07-10, immediately after the pre-registered experiment
 (logs/RQ1_SPEC.md) completed. Data: 1.67M dedup Chatbot Arena battles,
 14 monthly cumulative checkpoints 2023-07-31 → 2024-08-12, four fits per

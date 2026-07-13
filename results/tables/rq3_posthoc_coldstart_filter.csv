@@ -1,4 +1,4 @@
 unit,pooled_x_mpd,ci_lo_x_mpd,ci_hi_x_mpd,n_bt_better,verdict,note
-u0.5855,-0.10554241460481213,-0.176735670645567,-0.050655157508137136,11,equivalence,sub-practical directional lean: bt
-u0.1,-0.14114057991481688,-0.1902967650312644,-0.11059097192614047,13,equivalence,sub-practical directional lean: bt
-u0.8,-0.21746919000571746,-0.3100487943920987,-0.15706121915567509,12,equivalence,sub-practical directional lean: bt
+u0.5855,-0.12051528031067639,-0.1911623188361821,-0.0713249023575639,12,equivalence,sub-practical directional lean: bt
+u0.1,-0.14342746700459819,-0.19421848339102663,-0.11230054156894105,13,equivalence,sub-practical directional lean: bt
+u0.8,-0.22310120406905515,-0.31798065474744486,-0.16293815901682512,12,equivalence,sub-practical directional lean: bt

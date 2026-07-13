@@ -163,9 +163,10 @@ ax.annotate("practical-equivalence band ($\\pm$MPD)", (0.0, -0.85),
             color=INK2, fontsize=7.5)
 ax.bar(x, vals, width=0.62, color=BLUES["0.5855"], zorder=2)
 ax.axhline(0, color=BASE, linewidth=0.8)
-k = int(vals.idxmax())
-ax.annotate(f"2023-11-30 window: ${vals[k]:+.2f}\\times$MPD\n(cold-start episode; see RQ3 section)",
-            (x[k] + 0.4, vals[k] - 0.6), color=INK, fontsize=7.5)
+k = int(vals.abs().idxmax())
+ax.annotate(f"largest window: ${vals[k]:+.2f}\\times$MPD",
+            (x[k] + 0.35, vals[k] - 0.12), color=INK, fontsize=7.5)
+ax.set_ylim(-1.15, 1.15)
 month_ticks(ax, list(w3["window"]))
 ax.set_ylabel(r"window mean $\Delta$ ($\times$MPD)")
 ax.set_xlabel("test window (lattice better $>0$, BT better $<0$)")
@@ -260,3 +261,33 @@ print("fig_rq4_traj: nu", tm.nu_hat.iloc[0].round(3), "->", tm.nu_hat.iloc[-1].r
       tm.lattice_width_half_of_p0.min().round(2), "-",
       tm.lattice_width_half_of_p0.max().round(2))
 print("DONE")
+
+# ================= Figure C: conceptual error budget =================
+# Schematic (lengths NOT to scale — log-flavored visual ordering); every
+# annotation is a verified number from FINDINGS_INVENTORY / HEAD re-runs.
+fig, ax = plt.subplots(figsize=(6.6, 2.4))
+items = [
+    ("link-family choice\n(logistic vs any lattice width)",
+     1.0, "$\\leq 0.23$–$0.31\\times$MPD by construction\n(effect ceilings, computed before fitting)", BLUES["0.5855"]),
+    ("single-window episodes\n(tie channel, RQ4)",
+     2.6, "up to $9.6\\times$MPD in one window", "#8a8781"),
+    ("shared nonstationary drift\n(all methods alike)",
+     4.2, "reliability slope $\\approx 1.46$;\ntie share 13.1%$\\to$20.4% over 16 mo", "#8a8781"),
+    ("cold-start coverage\n(no ability model can score)",
+     5.8, "24.8–75.8% of next-month\ndecisive votes unscoreable", INK2),
+]
+for y, (label, length, note, c) in zip([3, 2, 1, 0], items):
+    ax.barh(y, length, height=0.52, color=c)
+    ax.text(-0.12, y, label, ha="right", va="center", fontsize=8, color=INK)
+    ax.text(length + 0.12, y, note, ha="left", va="center", fontsize=7.2, color=INK2)
+ax.set_xlim(0, 10.4)
+ax.set_ylim(-0.6, 3.7)
+ax.set_yticks([])
+ax.set_xticks([])
+ax.spines[["left", "bottom"]].set_visible(False)
+ax.grid(False)
+ax.set_title("What limits next-month ranking quality here (schematic; bar lengths not to scale)",
+             fontsize=8.5, color=INK)
+fig.tight_layout()
+fig.savefig(FIG / "fig_concept.pdf")
+print("fig_concept written")

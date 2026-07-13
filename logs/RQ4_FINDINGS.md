@@ -130,9 +130,11 @@ the Dec-2023→Feb-2024 additivity-excess era (RQ2B_EXCESS_FINDING), so
 "something unusual about that era's voting" is a shared candidate
 background, unverified.
 
-**Consequence for the cross-RQ shrinkage thread:** the cold-start
-shrinkage mechanism keeps exactly ONE empirical instance (RQ3's window,
-n=1) plus its structural derivation; RQ4 does NOT provide a second one.
+**Consequence for the cross-RQ shrinkage thread (further revised
+2026-07-13):** the cold-start shrinkage mechanism now keeps ZERO empirical
+instances — RQ3's window was itself an interpolation artifact
+(RESEARCH_LOG 2026-07-13), and RQ4 never was one. This section's
+tie-channel decomposition is post-spline and stands.
 The corrected cross-RQ statement for synthesis: *both pre-registered
 calibration comparisons were driven inconclusive by single-window events
 in the same calendar month, but through different channels — one

@@ -1,0 +1,5 @@
+experiment,unit,pooled_x_mpd,ci_lo_x_mpd,ci_hi_x_mpd,n_bt_better,verdict,note
+rq3,u0.1,-0.084495172055384,-0.1147675192362505,-0.05353389958816311,11,equivalence,sub-practical directional lean: bt
+rq3,u0.6892_early,-0.1753330405184634,-0.24587139753559548,-0.11855665252016416,11,equivalence,sub-practical directional lean: bt
+rq3,u0.6926_full,-0.1764346972403057,-0.24655920617156318,-0.11689116270184494,11,equivalence,sub-practical directional lean: bt
+rq4,profiled,0.7793049571054294,0.38211850722066926,1.092637202025754,2,inconclusive,

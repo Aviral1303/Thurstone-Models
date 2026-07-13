@@ -1,9 +1,12 @@
 # Findings Inventory — factual compilation across all RQs
 
-Compiled 2026-07-10 at synthesis kickoff. This is a COMPILATION with exact
-numbers and source references, not a narrative. Sign conventions and MPDs
-are stated per block; every number traces to a findings doc, the research
-log, or a results table in the repo (commit 63fcc3d).
+Compiled 2026-07-10; REVISED 2026-07-13 after the interpolation-artifact
+discovery (RESEARCH_LOG 2026-07-13): all fit-dependent tables regenerated
+at HEAD (consistent Hermite-spline interpolation; synthetic gates
+re-certified 05/06/10 all PASS). BT-only quantities (validation track)
+were never affected. This is a COMPILATION with exact numbers and source
+references, not a narrative; every number traces to a findings doc, the
+research log, or a results table at current HEAD.
 
 Dataset: LMSYS clean_battle_20240814 (1,799,991 anony battles, 129 models,
 2023-04-24→2024-08-14; dedup_sampled subset 1,670,250 used for all fits).
@@ -18,11 +21,10 @@ with synthetic gates passed before real data; post-hoc analyses labeled.
 
 ## RQ1 — Refit stability under population growth (RQ1_FINDINGS.md)
 
-- **Headline (pre-registered): NULL.** BT vs lattice refit stability
-  indistinguishable with data/ties/anchor held identical. δ=1mo,
-  incumbents ≥1000 votes, 13 windows: τ_b lattice-better 5 / worse 3 /
-  exactly tied 5; median paired Δτ_b = +0.00000. Mean τ_b 0.98434
-  (lattice u0.1) vs 0.98358 (BT). Reproduced at units 0.1/0.5855/0.8,
+- **Headline (pre-registered): NULL** (HEAD re-run 2026-07-13). δ=1mo,
+  incumbents ≥1000 votes, 13 windows: median paired Δτ_b = +0.00026;
+  lattice-better 7 / worse 4 / tied 2; mean τ_b 0.98469 (lattice u0.1)
+  vs 0.98358 (BT); max |window diff| 0.00713. Reproduced at all units,
   δ∈{1,3}, both incumbent sets. No incumbent moved >5 ranks in any
   window under either method. (rq1_metrics.csv)
 - **Secondary: stability is governed by sample size/pool maturity, not
@@ -30,8 +32,8 @@ with synthetic gates passed before real data; post-hoc analyses labeled.
   maturity) vs between-method differences ≤0.007 — ~2 orders of
   magnitude apart.
 - Magnitude metrics (slope-matched convention θ·slope(0)/0.25,
-  labeled convention-dependent): mean|Δθ| ≈1.73–1.77 Elo-equiv pts, all
-  methods within 0.04 of each other.
+  labeled convention-dependent): mean|Δθ| ≈1.70–1.77 Elo-equiv pts, all
+  methods within 0.07 of each other (HEAD).
 - **Tie-propensity drift** (context for all unit variants): quality-tie
   share 13.1% (first 3 months) → 20.45% (full period, non-bothbad
   denominator); profile-fitted unit 0.5855 (early) vs 0.8002 (full).
@@ -82,32 +84,32 @@ RQ2B_EXCESS_FINDING.md)
 Sign: Δ = ll(BT) − ll(lattice), positive = lattice better;
 MPD = 4e-4 nats/vote (10-Elo-error anchor).
 
-- **Headline (pre-registered): INCONCLUSIVE at all three units.**
-  Primary u0.5855: pooled +0.25×MPD, CI (−0.17, +1.22); 11–12/13 windows
-  sub-practical BT lean vs ONE window (2023-11-30) at +5.8×MPD.
-  (rq3_pooled_verdicts.csv)
-- **Best-case-location result (CI-bearing, citable):** in the one
-  location theory predicted a lattice-truth effect could exist
-  (high-noise-bin recent stratum; predicted +1.58×MPD under
-  lattice-truth), measured **−0.50×MPD, CI (−1.10, −0.06)** — evidence
-  against lattice-truth in its own best-case location.
-  (rq3_bin_pooled.csv)
-- Recent stratum overall (IV-pooled): −0.12×MPD, CI (−0.18, −0.06) →
-  "practically equivalent despite a detectable directional lean (BT)."
-- **Generalizable findings:** reliability slope ≈1.455 for ALL four
-  models (shared underconfidence on next-month votes;
-  rq3_reliability.csv); 24.8–75.8% of decisive test votes unscoreable
-  (cold-start coverage). Joint point: coverage and nonstationary drift
-  bind next-month predictability; link choice does not.
-- **Cold-start shrinkage case study (n=1):** pplx-7b-online entered
-  2023-11-30 with 2 training votes; BT extrapolated θ̂=+0.432, lattice
-  +0.004; BT paid ≈68 nats that window (~80% of the window's delta).
-  Estimation-side face of steep-link × parameter-uncertainty.
-- Post-hoc decomposition (labeled, scripts/16): excluding <30-training-
-  vote models, outlier collapses +5.8→+0.04×MPD; equivalence with
-  sub-practical BT lean at all units (−0.141/−0.106/−0.217×MPD at
-  u0.1/u0.5855/u0.8 — NOT monotone in steepness; steepest-unit-largest
-  is suggestive only, correction logged 2026-07-10).
+- **Headline (pre-registered classifier at HEAD): EQUIVALENCE with a
+  sub-practical BT-leaning directional lean, at all three units.**
+  Pooled: u0.5855 −0.121×MPD CI (−0.191, −0.074); u0.1 −0.148
+  (−0.201, −0.116); u0.8 −0.226 (−0.321, −0.164). BT better 12–13/13.
+  **ALL 13 windows inside the ±MPD band** (max |window| 0.63×MPD).
+  Leans NOT monotone in link steepness (u0.1 exceeds u0.5855).
+  (rq3_pooled_verdicts.csv, rq3_window_table_*.csv)
+- **SUPERSEDED (artifact):** the previously stored INCONCLUSIVE verdict
+  and its +5.8×MPD 2023-11-30 episode were artifacts of pre-spline
+  interpolation (RESEARCH_LOG 2026-07-13; attribution reproduced
+  exactly: old code +5.792, HEAD +0.017). The cold-start shrinkage case
+  study is RETRACTED as a link property: at HEAD the lattice fits
+  pplx-7b at +0.287 (vs BT +0.378) — no meaningful shrinkage.
+- **Best-case-location (HEAD):** where lattice-truth predicted
+  +1.58×MPD (high-noise-bin recent stratum), measured −0.275×MPD,
+  CI (−1.169, +0.040): the prediction is decisively excluded; the
+  interval now includes zero. (rq3_bin_pooled.csv)
+- Recent stratum overall (IV-pooled, u0.5855): −0.110×MPD,
+  CI (−0.172, −0.052) → sub-practical BT lean.
+- **Generalizable findings (HEAD):** reliability slope 1.4555 (BT) /
+  1.4581–1.4604 (lattice) — shared underconfidence on next-month votes
+  (rq3_reliability.csv); 24.8–75.8% of decisive test votes unscoreable
+  (rq3_unscoreable_by_window.csv). Coverage and drift bind; link does not.
+- Post-hoc filter (<30 training votes, scripts/16, HEAD): essentially
+  unchanged from unfiltered (−0.143/−0.121/−0.223) — with the artifact
+  gone there is no cold-start episode for the filter to remove.
 - Pre-analysis facts reused downstream: in-family effect ceiling
   ≤0.23×MPD on the empirical gap distribution (median |gap| 0.31);
   bootstrap-calibrated SEs = Fisher/0.80 (validated ρ=0.983 vs published
@@ -158,22 +160,62 @@ MPD = 3e-4 nats/vote (1pp tie-probability error at 20% tie level).
 
 - **Prediction-side overconfidence:** steeper links produce overconfident
   plugin predictions under ability noise. Evidence: synthetic World P2
-  (correctly-specified steep lattice loses −1.41×MPD at high noise);
-  does NOT operate at real pooled noise (+0.05..+0.27×MPD retained under
-  lattice-truth; scripts/12–13); suggestive qualified dose-response in
-  RQ3's filtered leans (largest lean at steepest unit, shallow pair
-  inverted). General caution for ranking/reward-model deployments
-  (PAPER_NOTES.md).
-- **Estimation-side shrinkage:** steeper links implicitly shrink
-  near-zero-data models toward the field. Evidence: exactly ONE
-  empirical instance (RQ3's pplx window, n=1) + structural argument.
-  RQ4 is NOT a second instance (corrected).
-- **Corrected cross-RQ statement:** both calibration comparisons (RQ3,
-  RQ4) were driven inconclusive by single-window episodes in the same
-  calendar month through DIFFERENT channels (cold-start/decisive vs
-  tie-shape/near-peer) — at real effect ceilings (≤0.23–0.31×MPD),
-  verdicts are hostage to individual episodes, not systematic link
-  differences.
+  (correctly-specified steep lattice loses −1.41×MPD at high noise;
+  re-certified at HEAD); does NOT operate at real pooled noise
+  (+0.05..+0.27×MPD retained under lattice-truth; scripts/12–13, HEAD);
+  directionally visible in RQ3's sub-practical leans (largest at the
+  steepest unit; NOT monotone — u0.1 exceeds u0.5855).
+- **Estimation-side shrinkage: RETRACTED as a link property**
+  (2026-07-13). The single apparent instance (pplx window) was the
+  interpolation artifact. The real, controllable version is EXPLICIT
+  regularization: ridge-BT (scripts/24, labeled post-hoc) shrinks
+  θ̂(pplx) +0.378→0.000 over λ∈[1,3] and improves that window by
+  ~5.5×MPD vs unregularized fits, with collateral shift on ≥1000-vote
+  models ≤0.015 (λ=3). Full 13-window grid: ridge-BT vs lattice pooled
+  −0.461×MPD CI (−1.359, −0.109) at λ=1 (inconclusive; driven by the
+  ex-episode window where ridge protects and the corrected lattice does
+  not). (ridge_sweep_episode.csv, ridge_windows.csv)
+- **Posterior-predictive check (scripts/25, labeled post-hoc):**
+  uncertainty-integrated prediction (§4.1 machinery, calibrated SEs,
+  Gauss–Hermite) changes essentially nothing: pooled −0.121→−0.117×MPD;
+  reliability slope 1.455→1.459 both methods. The binding
+  miscalibration is shared drift-underconfidence, not plugin
+  overconfidence. (pp_windows.csv, pp_reliability.csv)
+- **Corrected cross-RQ statement (v2, 2026-07-13):** at HEAD, RQ3 has NO
+  episode (all windows in-band) and returns equivalence; RQ4's
+  tie-channel episode stands (+9.55×MPD window; post-spline result).
+  The earlier "two episodes, same month, different channels" framing is
+  superseded: one of the two episodes was numerics.
+
+## Generalization: 2025 Arena release (scripts/27–28; pre-registered
+designs transported verbatim; labeled post-hoc generalization)
+
+- Data: lmarena-ai/arena-human-preference-140k — 135,634 battles, 53
+  models, 2025-04-17→07-24 (14 weeks), quality-tie share 17.96%;
+  12 weekly rolling windows mirror the monthly grid.
+- Full-population consistency: Spearman 0.999839, max rank move 1.
+- RQ3-style: **equivalence + sub-practical BT lean at all three units**
+  (−0.084 / −0.175 / −0.176×MPD at u0.1 / u0.6892 / u0.6926; BT better
+  11/13 legs) — replicates the HEAD-RQ3 finding on an independent era
+  and pool. (arena2025_rq3_windows.csv, arena2025_verdicts.csv)
+- RQ4-style (per-window profiled ν̂/û): lattice-leaning INCONCLUSIVE,
+  pooled +0.779×MPD CI (+0.382, +1.093) — the tie-channel lattice lean
+  replicates in direction, still straddling the practical threshold.
+  (arena2025_rq4_windows.csv)
+- Tie-parameter drift: û 0.6892 (first 3 weeks) vs 0.6926 (full) —
+  near-absent over 14 weeks; the 16-month drift is a long-horizon
+  phenomenon. (arena2025_rq4_trajectories.csv)
+
+## Machinery re-certification at HEAD (2026-07-13)
+
+- Synthetic gates all PASS at HEAD: scripts/05 (A/B/C/E incl. choix and
+  fastchat cross-checks), scripts/06 (unit recovery 0.5134 vs 0.5),
+  scripts/10 (P/P'/P2/N four gates). scripts/07 constants reproduce
+  (full-sample unit 0.8002; tie share 0.2045; consistency ρ=0.99999,
+  max rank move 1). Grounding reproduces (SE calibration ratio 0.803,
+  ρ=0.983; best-case prediction +1.58×MPD).
+- Ablations (scripts/26, labeled): bootstrap-B sweep, lattice
+  resolution (L, g_step), profile-grid density — see ablations.csv.
 
 ## Scope constraints binding all writing (SCOPE_REFRAME.md)
 
@@ -194,15 +236,19 @@ MPD = 3e-4 nats/vote (1pp tie-probability error at 20% tie level).
 |---|---|---|
 | BT replication vs published board | MAE 0.18 Elo pts, ρ=0.99997 | scripts/04, Phase 2 |
 | validation across eras | MAE 0.18–1.01 on 9/10 BT-era snapshots (outlier 2.26 at 2024-04-03) | rq1_validation_published.csv |
-| RQ1 median paired Δτ_b | +0.00000 (5/3/5 split) | rq1_metrics.csv |
-| tie-share drift | 13.1% → 20.45% | logs 2026-07-10 |
-| fitted tie params drift | ν̂ 0.376→0.559; û 0.594→0.803 | rq4_param_trajectories.csv |
+| RQ1 median paired Δτ_b (HEAD) | +0.00026 (7/4/2 split; means 0.98469 vs 0.98358) | rq1_metrics.csv |
+| RQ3 verdict (HEAD) | equivalence + BT lean: −0.121×MPD CI (−0.191,−0.074); all 13 windows in-band | rq3_pooled_verdicts.csv |
+| RQ3 best-case-location (HEAD) | −0.275×MPD, CI (−1.169, +0.040); prediction +1.58 excluded | rq3_bin_pooled.csv |
+| tie-share drift | 13.1% → 20.45% (2023–24); 17.96% flat in 2025 | logs 2026-07-10/13 |
+| fitted tie params drift | ν̂ 0.376→0.559; û 0.594→0.803 (2023–24); û 0.689→0.693 (2025) | rq4/arena2025 trajectories |
 | RQ3 effect ceiling (empirical gaps) | ≤0.23×MPD | rq3_ceiling_empirical.csv |
 | RQ4 tie-mechanism ceiling | ≤0.31×MPD | rq4_tie_ceiling.csv |
-| RQ3 best-case-location | −0.50×MPD, CI (−1.10, −0.06) | rq3_bin_pooled.csv |
-| reliability slope, all methods | ≈1.455 | rq3_reliability.csv |
+| reliability slope, all methods | 1.4555–1.4604 (plugin); 1.459–1.461 (posterior-predictive) | rq3_reliability.csv, pp_reliability.csv |
 | unscoreable test votes | 24.8–75.8%/window | rq3_unscoreable_by_window.csv |
 | RQ2b excess | z² 1.57/1.65, 13–14% \|z\|>2 | rq2b_excess_covariates.csv |
 | tie-band half-widths | 2.84–2.93 vs 1.67–1.68 | rq4_tie_band_table.csv |
 | entanglement excess | ≈+2.2×MPD decisive LL | rq4_bothbad_entanglement.csv |
+| ridge cold-start protection | θ̂(pplx) +0.378→0.000 over λ∈[1,3]; ~5.5×MPD window gain | ridge_sweep_episode.csv |
+| 2025 replication (RQ3-style) | equivalence + BT lean −0.084/−0.175/−0.176×MPD | arena2025_verdicts.csv |
+| artifact attribution | old interp +5.792×MPD vs HEAD +0.017×MPD, same window | RESEARCH_LOG 2026-07-13 |
 | MPDs | RQ3 4e-4; RQ4 3e-4 nats/vote | pre-analysis docs |

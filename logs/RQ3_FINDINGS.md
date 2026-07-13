@@ -1,5 +1,17 @@
 # RQ3 Findings — Held-out calibration, BT vs lattice-Thurstone
 
+> **SUPERSEDED IN PART (2026-07-13).** The headline INCONCLUSIVE verdict,
+> the +5.8×MPD episode, and the §4 cold-start shrinkage case study were
+> artifacts of pre-Hermite-spline interpolation (attribution reproduced
+> exactly; RESEARCH_LOG 2026-07-13). At HEAD the pre-registered classifier
+> returns **EQUIVALENCE with a sub-practical BT lean** at all three units
+> (−0.121/−0.148/−0.226×MPD; all 13 windows inside the band), the best-case
+> location reads −0.275×MPD CI (−1.169, +0.040), and the shrinkage case
+> study is RETRACTED as a link property (explicit ridge provides the real
+> protection — scripts/24). Current numbers: FINDINGS_INVENTORY.md. The
+> text below is preserved as the historical record of the original run.
+
+
 Written 2026-07-12, immediately after the pre-registered experiment
 (logs/RQ3_PREANALYSIS.md, run exactly as committed by scripts/15). Data:
 13 rolling monthly windows on 1.67M dedup Chatbot Arena battles; 484,599

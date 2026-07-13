@@ -1,0 +1,12 @@
+ablation,setting,value
+bootstrap_B,1000,"CI (-0.169,+1.191)xMPD"
+bootstrap_B,5000,"CI (-0.167,+1.184)xMPD"
+bootstrap_B,10000,"CI (-0.167,+1.221)xMPD"
+bootstrap_B,50000,"CI (-0.166,+1.238)xMPD"
+lattice_resolution_curve,"L=250,g_step=0.02",sup|dF|=2.22e-16
+lattice_resolution_curve,"L=1000,g_step=0.02",sup|dF|=3.33e-16
+lattice_resolution_curve,"L=500,g_step=0.005",sup|dF|=3.46e-04
+lattice_resolution_fullfit,L=250 vs 500,"spearman=1.000000, max|dtheta|=0.00000"
+profile_grid,8pts,u_hat=0.8029
+profile_grid,12pts,u_hat=0.7979
+profile_grid,16pts,u_hat=0.7936

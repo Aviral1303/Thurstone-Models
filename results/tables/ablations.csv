@@ -1,8 +1,8 @@
 ablation,setting,value
-bootstrap_B,1000,"CI (-0.169,+1.191)xMPD"
-bootstrap_B,5000,"CI (-0.167,+1.184)xMPD"
-bootstrap_B,10000,"CI (-0.167,+1.221)xMPD"
-bootstrap_B,50000,"CI (-0.166,+1.238)xMPD"
+bootstrap_B,1000,"CI (-0.194,-0.076)xMPD"
+bootstrap_B,5000,"CI (-0.192,-0.075)xMPD"
+bootstrap_B,10000,"CI (-0.191,-0.074)xMPD"
+bootstrap_B,50000,"CI (-0.190,-0.073)xMPD"
 lattice_resolution_curve,"L=250,g_step=0.02",sup|dF|=2.22e-16
 lattice_resolution_curve,"L=1000,g_step=0.02",sup|dF|=3.33e-16
 lattice_resolution_curve,"L=500,g_step=0.005",sup|dF|=3.46e-04

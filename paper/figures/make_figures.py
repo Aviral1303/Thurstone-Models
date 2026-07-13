@@ -262,32 +262,40 @@ print("fig_rq4_traj: nu", tm.nu_hat.iloc[0].round(3), "->", tm.nu_hat.iloc[-1].r
       tm.lattice_width_half_of_p0.max().round(2))
 print("DONE")
 
-# ================= Figure C: conceptual error budget =================
-# Schematic (lengths NOT to scale — log-flavored visual ordering); every
-# annotation is a verified number from FINDINGS_INVENTORY / HEAD re-runs.
-fig, ax = plt.subplots(figsize=(6.6, 2.4))
-items = [
-    ("link-family choice\n(logistic vs any lattice width)",
-     1.0, "$\\leq 0.23$–$0.31\\times$MPD by construction\n(effect ceilings, computed before fitting)", BLUES["0.5855"]),
-    ("single-window episodes\n(tie channel, RQ4)",
-     2.6, "up to $9.6\\times$MPD in one window", "#8a8781"),
-    ("shared nonstationary drift\n(all methods alike)",
-     4.2, "reliability slope $\\approx 1.46$;\ntie share 13.1%$\\to$20.4% over 16 mo", "#8a8781"),
-    ("cold-start coverage\n(no ability model can score)",
-     5.8, "24.8–75.8% of next-month\ndecisive votes unscoreable", INK2),
+# ================= Figure C: error budget, log scale =================
+# Bar lengths map to log10 of measured values in RQ3 threshold units for
+# the three entries expressible in them; cold-start coverage has no such
+# unit and is drawn as an axis-spanning hatched row, labeled as such.
+gains = pd.read_csv(T / "recalibration_gain.csv")
+recal = float(np.average(gains.gain_nats, weights=gains.n)) / 4e-4
+entries = [
+    ("link-family choice\n(any lattice width vs logistic)", 0.31,
+     "$\\leq 0.23$ to $0.31\\times$ threshold\n(effect ceilings, computed before fitting)", BLUES["0.5855"]),
+    ("largest single-window episode\n(tie channel, one month)", 9.55,
+     "$9.6\\times$ threshold in one window", "#8a8781"),
+    ("nonstationary drift\n(recalibration gain, all methods)", recal,
+     f"${recal:.1f}\\times$ threshold; tie share\n13.1% to 20.4% over 16 months", INK2),
 ]
-for y, (label, length, note, c) in zip([3, 2, 1, 0], items):
-    ax.barh(y, length, height=0.52, color=c)
-    ax.text(-0.12, y, label, ha="right", va="center", fontsize=8, color=INK)
-    ax.text(length + 0.12, y, note, ha="left", va="center", fontsize=7.2, color=INK2)
-ax.set_xlim(0, 10.4)
+fig, ax = plt.subplots(figsize=(6.6, 2.5))
+x0 = -1.4  # axis floor at 10^-1.4
+for y, (label, val, note, c) in zip([3, 2, 1], entries):
+    L = np.log10(val) - x0
+    ax.barh(y, L, left=x0, height=0.5, color=c)
+    ax.text(x0 - 0.08, y, label, ha="right", va="center", fontsize=8, color=INK)
+    ax.text(np.log10(val) + 0.08, y, note, ha="left", va="center", fontsize=7.2, color=INK2)
+ax.barh(0, 1.5 - x0, left=x0, height=0.5, color="none", edgecolor=MUTED, hatch="////")
+ax.text(x0 - 0.08, 0, "cold-start coverage\n(24.8% to 75.8% of votes unscoreable)",
+        ha="right", va="center", fontsize=8, color=INK)
+ax.text(1.58, 0, "no threshold-unit equivalent:\nunpredictable by any ability model",
+        ha="left", va="center", fontsize=7.2, color=INK2)
+ax.set_xlim(x0, 3.4)
 ax.set_ylim(-0.6, 3.7)
 ax.set_yticks([])
-ax.set_xticks([])
-ax.spines[["left", "bottom"]].set_visible(False)
+ax.set_xticks([np.log10(v) for v in (0.1, 1, 10)])
+ax.set_xticklabels(["0.1", "1", "10"])
+ax.set_xlabel("measured size (threshold units, log scale)", fontsize=8)
 ax.grid(False)
-ax.set_title("What limits next-month ranking quality here (schematic; bar lengths not to scale)",
-             fontsize=8.5, color=INK)
+ax.set_title("What limits next-month ranking quality here", fontsize=8.5, color=INK)
 fig.tight_layout()
 fig.savefig(FIG / "fig_concept.pdf")
-print("fig_concept written")
+print(f"fig_concept (log scale): recalibration gain {recal:.2f}x")

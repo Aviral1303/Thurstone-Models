@@ -1,0 +1,9 @@
+,residual_elo,days_in_pool_at_snapshot
+qwen1.5-32b-chat,-72.13,0.2
+codellama-70b-instruct,-8.76,53.2
+qwen1.5-7b-chat,-7.31,57.8
+chatglm2-6b,-6.05,235.0
+gpt4all-13b-snoozy,5.85,299.3
+dolphin-2.2.1-mistral-7b,-5.27,116.2
+falcon-180b-chat,-5.11,194.9
+gemma-2b-it,3.57,37.4

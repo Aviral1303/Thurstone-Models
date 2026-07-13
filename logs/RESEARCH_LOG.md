@@ -1041,6 +1041,42 @@ Paper restructure proceeding on these numbers (reviewer critique round).
 
 ---
 
+## 2026-07-13 — Punch-list revision round: TWO more self-corrections
+
+Reviewer punch list executed (scripts 30/31/32 + full text revision).
+New labeled post-hoc tables: mpd_sensitivity, loo_windows,
+punchlist_misc, outlier_residuals, recalibration_gain,
+anomaly_magnitude, bothbad_boundary_stress, theorem2_numerics.
+
+**Correction 1 — validation outlier EXPLAINED**: 2024-04-03's MAE 2.26 is
+one model (qwen1.5-32b-chat), 0.2 days old at the snapshot instant, with
+a −72 Elo residual by itself; excluding it → 1.35, in line with
+neighbors. Snapshot-vs-archive boundary disagreement about a model hours
+into the pool.
+
+**Correction 2 — entanglement cost WITHDRAWN**: extending/refining the
+both-bad profile grid (0.2→2.6, scripts/31) moves ALL formerly-pinned
+widths to interior optima 1.23–1.34 (the 1.4 pinning was grid
+resolution, not a boundary); at proper optima the lattice's decisive
+degradation averages +1.73×MPD vs the Davidson control's +2.50 — no
+lattice-specific excess survives. Theorem 1's structural contrast
+stands; its measured price does not. Paper §6.4 and Limitations updated
+accordingly.
+
+Other numerics: RQ3 equivalence robust 5–20 Elo thresholds and all 13
+LOO; RQ4 threshold-sensitive (0.5pp→lattice-positive, 2pp→equivalence)
+and single-window-fragile both directions; non-monotone width ordering
+is 46%-coin-flip noise; triples span 43 models (top-5 = 33.6% of slots);
+mean Δτ CI (−0.0001,+0.0025) touches zero; 2025 pool overlap = 1/53
+models, median votes 5.6k vs 14.6k; published CI half-widths median 4.9
+Elo (10-Elo anchor justified); toy probit-vs-logit ceiling 0.67×MPD;
+recalibration gain 12.38×MPD (~50× the ceiling). Paper: scope+precedent
+paragraphs (TOST/Le Cam/Pinsker/proper scoring cited), P2 gate promoted,
+appendices A (bug autopsy), B (key numbers), C (sensitivity/LOO);
+affiliation disclaimer footnote; generalization reframed as conjecture.
+
+---
+
 ## 2026-07-10 — Inventory accuracy pass (final housekeeping before outline)
 
 Programmatic verification of every quick-reference number in

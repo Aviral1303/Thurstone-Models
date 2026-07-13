@@ -1,0 +1,12 @@
+experiment,threshold,mpd_nats,pooled_x_mpd,verdict,note
+rq3_u0.5855,3 Elo,3.727897108930124e-05,-1.3013940671464772,bt_positive,
+rq3_u0.5855,5 Elo,0.00010355269747028125,-0.46850186417273165,equivalence,sub-practical directional lean: bt
+rq3_u0.5855,7.5 Elo,0.0002329935693081328,-0.2082230507434363,equivalence,sub-practical directional lean: bt
+rq3_u0.5855,10 Elo,0.000414210789881125,-0.11712546604318291,equivalence,sub-practical directional lean: bt
+rq3_u0.5855,15 Elo,0.0009319742772325312,-0.052055762685859076,equivalence,sub-practical directional lean: bt
+rq3_u0.5855,20 Elo,0.0016568431595245,-0.02928136651079573,equivalence,sub-practical directional lean: bt
+rq4_main,0.5pp tie,7.8125e-05,3.216565111869206,lattice_positive,
+rq4_main,0.75pp tie,0.00017578125,1.4295844941640916,lattice_positive,
+rq4_main,1.0pp tie,0.0003125,0.8041412779673015,inconclusive,
+rq4_main,1.5pp tie,0.000703125,0.3573961235410229,inconclusive,
+rq4_main,2.0pp tie,0.00125,0.20103531949182538,equivalence,sub-practical directional lean: lattice

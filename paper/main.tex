@@ -15,6 +15,8 @@
 \usepackage{newtxtext,newtxmath}
 \usepackage[T1]{fontenc}
 \usepackage{microtype}
+\emergencystretch=1.5em
+\clubpenalty=10000 \widowpenalty=10000
 \usepackage{booktabs,graphicx,amsmath} % amssymb omitted: newtxmath provides those symbols and clashes on \Bbbk
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
@@ -40,9 +42,9 @@ Mechanics in Large-Scale Pairwise Preference Ranking}
 
 \begin{abstract}
 Large-scale preference leaderboards such as Chatbot Arena rank language
-models by maximum-likelihood Bradley--Terry (BT), inheriting the logistic
-link's independence-of-irrelevant-alternatives assumption over a comparison
-pool that never stops growing. We test whether a flexible Thurstonian
+models by maximum-likelihood Bradley--Terry (BT), whose logistic link
+assumes independence of irrelevant alternatives across a comparison pool
+that never stops growing. We test whether a flexible Thurstonian
 alternative---a lattice-based model that on pairwise data reduces to a
 steeper, natively tie-aware gap link---measurably improves refit
 stability, held-out calibration, or tie handling on 1.67 million Arena
@@ -302,11 +304,11 @@ against the logistic. The lattice links are steeper at the origin
 \subsection{Davidson: ties by extension, orthogonal by construction}
 
 \citet{davidson1970} extends BT with a tie outcome. In gap form, with
-$\nu \geq 0$,
+$\nu \geq 0$ and normalizer $Z_\nu(g) = 2\cosh(g/2) + \nu$,
 \begin{equation}\label{eq:davidson}
-\Pr(A \succ B \mid g) = \frac{e^{g/2}}{2\cosh(g/2) + \nu}, \qquad
-\Pr(\text{tie} \mid g) = \frac{\nu}{2\cosh(g/2) + \nu}, \qquad
-\Pr(B \succ A \mid g) = \frac{e^{-g/2}}{2\cosh(g/2) + \nu}.
+\Pr(A \succ B \mid g) = \frac{e^{g/2}}{Z_\nu(g)}, \qquad
+\Pr(\text{tie} \mid g) = \frac{\nu}{Z_\nu(g)}, \qquad
+\Pr(B \succ A \mid g) = \frac{e^{-g/2}}{Z_\nu(g)}.
 \end{equation}
 
 \begin{proposition}\label{prop:davidson}
@@ -316,7 +318,7 @@ $\Pr(A \succ B \mid \mathrm{decisive}, g) = \sigma(g)$.
 \end{proposition}
 
 \begin{proof}
-From Eq.~\ref{eq:davidson}, conditioning on a decisive outcome cancels
+From Eq.~\eqref{eq:davidson}, conditioning on a decisive outcome cancels
 the common denominator:
 $e^{g/2} / (e^{g/2} + e^{-g/2}) = (1 + e^{-g})^{-1} = \sigma(g)$.
 \end{proof}
@@ -582,7 +584,7 @@ Pooled mean $z^2$ is $1.202$ (logit) versus $1.231/1.252/1.279$ (lattice
 widths $0.5855/0.1/0.8$), with the lattice lower in one block of five:
 differences of the same order as the no-power spread. This is a second,
 independently derived version of the effect ceiling of
-Eq.~\ref{eq:ceiling}: a within-window ranking-consistency statistic with
+Eq.~\eqref{eq:ceiling}: a within-window ranking-consistency statistic with
 no held-out scoring, no plugin predictions, and no time splits reaches
 the same conclusion as the analytic KL bound---\emph{at the ability gaps
 real matchups occupy, no member of this Thurstonian family is
@@ -626,7 +628,7 @@ rather than ran it.
 
 \textbf{Question and design.} On next month's decisive votes, whose
 predicted win probabilities are better calibrated? Both methods are fit
-per window in half-tie mode (Eq.~\ref{eq:halftie}) and scored by log
+per window in half-tie mode (Eq.~\eqref{eq:halftie}) and scored by log
 loss on the shared scoreable decisive votes. Sign convention throughout
 this section: $\Delta = \ell\ell_{\text{BT}} - \ell\ell_{\text{lattice}}$
 per vote, so positive $\times$MPD favors the lattice. Pre-registered
@@ -719,8 +721,8 @@ convention: $\Delta = \ell\ell_{\text{Davidson}} -
 \ell\ell_{\text{lattice}}$, positive favors the lattice;
 $\text{MPD}_4 = 3\times10^{-4}$ nats/vote.
 
-\textbf{Pre-registered verdict: inconclusive, same shape as RQ3,
-different cause.} Pooled $+0.838\times$MPD, CI $(+0.017,
+\textbf{Pre-registered verdict: inconclusive.} The pattern mirrors
+RQ3's, with a different cause. Pooled $+0.838\times$MPD, CI $(+0.017,
 +2.542)$; the lattice is better in $10/13$ windows but the estimate is
 carried by the same calendar window as RQ3's outlier
 ($+9.55\times$MPD). Decomposition, however, refutes the natural guess
@@ -880,8 +882,8 @@ either direction.
 % ==================================================================
 \section{Limitations and open questions}\label{sec:limits}
 
-\textbf{Scope.} Nothing here tests \citet{cotton2021}'s multi-entrant
-field-coherence property (Section~\ref{sec:related}); our conclusions
+\textbf{Scope.} Nothing here tests the multi-entrant field-coherence
+property of \citet{cotton2021} (Section~\ref{sec:related}); our conclusions
 concern gap-link shape and tie mechanics on pairwise data from one
 platform and era. The dose-response evidence for prediction-side
 overconfidence is suggestive, not monotone; the shrinkage evidence is a

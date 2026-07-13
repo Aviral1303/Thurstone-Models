@@ -80,7 +80,8 @@ ax.set_xlim(-3.4, 4.2)
 ax.set_xlabel("latent performance (ability units)")
 ax.set_ylabel("cell probability")
 ax.set_title(f"(a) lattice performances, unit $u={u}$, gap $g={g_show}$")
-ax.legend(loc="upper left", handlelength=1.2)
+ax.legend(loc="upper left", handlelength=1.2, frameon=True,
+          facecolor="white", framealpha=0.85, edgecolor="none")
 
 ax = axes[1]
 gs = np.linspace(-3, 3, 601)
@@ -249,7 +250,7 @@ month_ticks(ax, list(tm["window"]), every=3)
 ax.set_ylabel("half-max half-width (ability units)")
 ax.set_ylim(0, 3.3)
 ax.set_title("(b) implied tie-band width")
-ax.legend(loc="center right", fontsize=7)
+ax.legend(loc="lower right", fontsize=7)
 fig.tight_layout()
 fig.savefig(FIG / "fig_rq4_traj.pdf")
 print("fig_rq4_traj: nu", tm.nu_hat.iloc[0].round(3), "->", tm.nu_hat.iloc[-1].round(3),

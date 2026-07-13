@@ -1,0 +1,120 @@
+\begin{thebibliography}{18}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Boehmer et~al.(2024)Boehmer, Faliszewski, and Kraiczy]{boehmer2024}
+Niclas Boehmer, Piotr Faliszewski, and Sonja Kraiczy.
+\newblock Properties of the {M}allows model depending on the number of
+  alternatives: A warning for an experimentalist, 2024.
+
+\bibitem[Bradley and Terry(1952)]{bradleyterry1952}
+Ralph~Allan Bradley and Milton~E. Terry.
+\newblock Rank analysis of incomplete block designs: {I}. {T}he method of
+  paired comparisons.
+\newblock \emph{Biometrika}, 39\penalty0 (3/4):\penalty0 324--345, 1952.
+
+\bibitem[Chiang et~al.(2024)Chiang, Zheng, Sheng, Angelopoulos, Li, Li, Zhang,
+  Zhu, Jordan, Gonzalez, and Stoica]{chiang2024arena}
+Wei-Lin Chiang, Lianmin Zheng, Ying Sheng, Anastasios~N. Angelopoulos, Tianle
+  Li, Dacheng Li, Hao Zhang, Banghua Zhu, Michael Jordan, Joseph~E. Gonzalez,
+  and Ion Stoica.
+\newblock Chatbot arena: An open platform for evaluating {LLM}s by human
+  preference, 2024.
+
+\bibitem[Cotton(2021)]{cotton2021}
+Peter Cotton.
+\newblock Inferring relative ability from winning probability in multientrant
+  contests.
+\newblock \emph{SIAM Journal on Financial Mathematics}, 12\penalty0
+  (1):\penalty0 295--317, 2021.
+\newblock \doi{10.1137/19M1276261}.
+
+\bibitem[Davidson(1970)]{davidson1970}
+Roger~R. Davidson.
+\newblock On extending the {B}radley--{T}erry model to accommodate ties in
+  paired comparison experiments.
+\newblock \emph{Journal of the American Statistical Association}, 65\penalty0
+  (329):\penalty0 317--328, 1970.
+
+\bibitem[Doignon et~al.(2004)Doignon, Peke{\v{c}}, and
+  Regenwetter]{doignon2004}
+Jean-Paul Doignon, Aleksandar Peke{\v{c}}, and Michel Regenwetter.
+\newblock The repeated insertion model for rankings: Missing link between two
+  subset choice models.
+\newblock \emph{Psychometrika}, 69\penalty0 (1):\penalty0 33--54, 2004.
+\newblock \doi{10.1007/BF02295838}.
+
+\bibitem[Elo(1978)]{elo1978}
+Arpad~E. Elo.
+\newblock \emph{The Rating of Chessplayers, Past and Present}.
+\newblock Arco, New York, 1978.
+
+\bibitem[Glickman(1999)]{glickman1999}
+Mark~E. Glickman.
+\newblock Parameter estimation in large dynamic paired comparison experiments.
+\newblock \emph{Journal of the Royal Statistical Society: Series C (Applied
+  Statistics)}, 48\penalty0 (3):\penalty0 377--394, 1999.
+
+\bibitem[Harville(1973)]{harville1973}
+David~A. Harville.
+\newblock Assigning probabilities to the outcomes of multi-entry competitions.
+\newblock \emph{Journal of the American Statistical Association}, 68\penalty0
+  (342):\penalty0 312--316, 1973.
+
+\bibitem[Herbrich et~al.(2007)Herbrich, Minka, and
+  Graepel]{herbrich2007trueskill}
+Ralf Herbrich, Tom Minka, and Thore Graepel.
+\newblock {TrueSkill}: A {B}ayesian skill rating system.
+\newblock In \emph{Advances in Neural Information Processing Systems 19}, pages
+  569--576, 2007.
+
+\bibitem[Liu et~al.(2024)Liu, Qin, Wu, Shen, Khalman, Joshi, Zhao, Saleh,
+  Baumgartner, Liu, Liu, and Wang]{liu2024lipo}
+Tianqi Liu, Zhen Qin, Junru Wu, Jiaming Shen, Misha Khalman, Rishabh Joshi, Yao
+  Zhao, Mohammad Saleh, Simon Baumgartner, Jialu Liu, Peter~J. Liu, and Xuanhui
+  Wang.
+\newblock {LiPO}: Listwise preference optimization through learning-to-rank,
+  2024.
+
+\bibitem[Luce(1959)]{luce1959}
+R.~Duncan Luce.
+\newblock \emph{Individual Choice Behavior: A Theoretical Analysis}.
+\newblock Wiley, New York, 1959.
+
+\bibitem[Mosteller(1951)]{mosteller1951}
+Frederick Mosteller.
+\newblock Remarks on the method of paired comparisons: {I}. {T}he least squares
+  solution assuming equal standard deviations and equal correlations.
+\newblock \emph{Psychometrika}, 16\penalty0 (1):\penalty0 3--9, 1951.
+
+\bibitem[Plackett(1975)]{plackett1975}
+R.~L. Plackett.
+\newblock The analysis of permutations.
+\newblock \emph{Journal of the Royal Statistical Society: Series C (Applied
+  Statistics)}, 24\penalty0 (2):\penalty0 193--202, 1975.
+
+\bibitem[Potyka et~al.(2023)Potyka, Zhu, He, Kharlamov, and Staab]{potyka2023}
+Nico Potyka, Yuqicheng Zhu, Yunjie He, Evgeny Kharlamov, and Steffen Staab.
+\newblock Robust knowledge extraction from large language models using social
+  choice theory, 2023.
+
+\bibitem[Tang et~al.(2023)Tang, Zhang, Ma, Lin, and Ture]{tang2023}
+Raphael Tang, Crystina Zhang, Xueguang Ma, Jimmy Lin, and Ferhan Ture.
+\newblock Found in the middle: Permutation self-consistency improves listwise
+  ranking in large language models, 2023.
+
+\bibitem[Thurstone(1927)]{thurstone1927}
+L.~L. Thurstone.
+\newblock A law of comparative judgment.
+\newblock \emph{Psychological Review}, 34\penalty0 (4):\penalty0 273--286,
+  1927.
+
+\bibitem[Zhao et~al.(2024)Zhao, Wang, and Peng]{zhao2024}
+Xiutian Zhao, Ke~Wang, and Wei Peng.
+\newblock Measuring the inconsistency of large language models in preferential
+  ranking, 2024.
+
+\end{thebibliography}

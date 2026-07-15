@@ -1,0 +1,704 @@
+<title>Bot Arena — Quantbots Head-to-Head</title>
+<style>
+  /* Mission Control tokens — from ~/Bots/DESIGN.md (dark-only by design) */
+  :root {
+    color-scheme: dark;
+    --bg: #08090C;
+    --surface: #0E1015;
+    --surface-2: #14171E;
+    --surface-3: #1B1F28;
+    --border: #1E222B;
+    --border-strong: #2A2F3A;
+    --text: #E8ECEF;
+    --text-2: #B8BEC8;
+    --text-3: #7A828F;
+    --text-muted: #4A5263;
+    --signal: #00D9FF;
+    --signal-dim: #0099B8;
+    --signal-bg: #003848;
+    --pos: #00C896;
+    --neg: #FF5C5C;
+    --warn: #FFB740;
+    --warn-bg: #2A2008;
+    --sans: "Geist", "Geist Sans", -apple-system, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); }
+  body {
+    margin: 0;
+    color: var(--text-2);
+    font-family: var(--sans);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .num, .mono { font-family: var(--mono); font-feature-settings: 'tnum'; }
+  a { color: var(--signal); text-decoration: none; }
+  a:hover, a:focus-visible { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 0 1.5rem 5rem; }
+
+  /* ---- top status bar ---- */
+  .statusbar {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; align-items: center;
+    padding: 0.8rem 0; border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-3);
+  }
+  .statusbar .live { color: var(--signal); display: inline-flex; align-items: center; gap: 0.4rem; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--signal); }
+  @media (prefers-reduced-motion: no-preference) {
+    .dot { animation: pulse 2.4s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+  }
+  .statusbar .right { margin-left: auto; }
+
+  /* ---- header ---- */
+  header.hero { padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); }
+  .kicker {
+    font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--signal); margin: 0 0 0.9rem;
+  }
+  h1 {
+    font-size: 1.625rem; line-height: 1.15; letter-spacing: -0.01em;
+    color: var(--text); font-weight: 700; margin: 0 0 0.75rem; text-wrap: balance;
+  }
+  .hero p.lede { max-width: 46rem; margin: 0 0 1.75rem; font-size: 1rem; color: var(--text-2); }
+  .hero p.lede strong { color: var(--text); font-weight: 600; }
+
+  .statrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .stat { background: var(--surface); padding: 0.9rem 1rem; }
+  .stat .v { font-family: var(--mono); font-feature-settings: 'tnum'; font-size: 1.625rem; font-weight: 700; color: var(--text); line-height: 1.15; }
+  .stat .k { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-top: 0.3rem; }
+
+  /* ---- sections ---- */
+  section { padding: 2.5rem 0 0; }
+  .seclabel {
+    font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-3); margin: 0 0 0.5rem;
+  }
+  h2 { font-size: 1.25rem; letter-spacing: -0.01em; color: var(--text); font-weight: 600; margin: 0 0 0.9rem; text-wrap: balance; }
+  h3 { font-size: 1rem; color: var(--text); font-weight: 600; margin: 1.5rem 0 0.5rem; }
+  section > p, .prose p { max-width: 46rem; margin: 0 0 0.9rem; }
+  section p strong, li strong { color: var(--text); font-weight: 600; }
+  code {
+    font-family: var(--mono); font-size: 0.8125rem; color: var(--text);
+    background: var(--surface-3); border: 1px solid var(--border);
+    padding: 0.1em 0.35em; border-radius: 3px; white-space: nowrap;
+  }
+  ul { max-width: 46rem; padding-left: 1.2rem; margin: 0 0 0.9rem; }
+  li { margin-bottom: 0.45rem; }
+  li::marker { color: var(--text-muted); }
+
+  /* ---- method pipeline ---- */
+  .pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 1.25rem 0 0; }
+  .step { background: var(--surface); padding: 1rem; }
+  .step .n { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; color: var(--signal); text-transform: uppercase; }
+  .step .t { color: var(--text); font-weight: 600; margin: 0.35rem 0 0.3rem; font-size: 0.875rem; }
+  .step .d { font-size: 0.8125rem; color: var(--text-3); }
+  .step .d code { font-size: 0.75rem; }
+
+  /* ---- league split diagram ---- */
+  .split { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: stretch; margin: 1.5rem 0 1rem; }
+  .leaguecard { border: 1px solid var(--border); background: var(--surface); padding: 1rem; }
+  .leaguecard .lh { display: flex; align-items: baseline; gap: 0.6rem; margin-bottom: 0.8rem; }
+  .leaguecard .lh .name { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+  .leaguecard .lh .sub { font-family: var(--mono); font-size: 0.625rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .nodes { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .node {
+    font-family: var(--mono); font-size: 0.6875rem; color: var(--text-2);
+    border: 1px solid var(--border-strong); background: var(--surface-2);
+    padding: 0.25rem 0.55rem; border-radius: 999px; white-space: nowrap;
+  }
+  .node.champ { color: var(--signal); border-color: var(--signal-dim); background: var(--signal-bg); }
+  .node.thin { color: var(--text-muted); border-style: dashed; }
+  .bridge { display: flex; flex-direction: column; justify-content: center; gap: 0.9rem; text-align: center; min-width: 11rem; }
+  .bridge .edge { font-family: var(--mono); font-size: 0.6875rem; color: var(--text-3); }
+  .bridge .edge .arrow { color: var(--warn); font-size: 1rem; display: block; line-height: 1.2; }
+  .bridge .verdict { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warn); }
+  @media (max-width: 44rem) { .split { grid-template-columns: 1fr; } .bridge { min-width: 0; } }
+
+  .singleton { font-size: 0.8125rem; color: var(--text-3); max-width: 46rem; }
+
+  /* ---- callouts ---- */
+  .callout { border: 1px solid var(--border); border-left: 2px solid var(--warn); background: var(--surface); padding: 0.9rem 1.1rem; max-width: 46rem; margin: 1.25rem 0; font-size: 0.8125rem; }
+  .callout .ct { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warn); margin-bottom: 0.35rem; }
+  .callout p { margin: 0; }
+  .callout.info { border-left-color: var(--signal-dim); }
+  .callout.info .ct { color: var(--signal); }
+
+  /* ---- tables ---- */
+  .tablewrap { overflow-x: auto; border: 1px solid var(--border); margin: 1.25rem 0 0.5rem; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.75rem; background: var(--surface); }
+  th {
+    font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-3); font-weight: 500;
+    text-align: right; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  th.l, td.l { text-align: left; }
+  td {
+    font-family: var(--mono); font-feature-settings: 'tnum'; text-align: right;
+    padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
+    color: var(--text-2); white-space: nowrap; line-height: 1;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+  td.bot { color: var(--text); }
+  td .chip {
+    display: inline-block; font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--signal); background: var(--signal-bg); border: 1px solid var(--signal-dim);
+    border-radius: 999px; padding: 0.1rem 0.45rem; margin-left: 0.5rem; vertical-align: 1px;
+  }
+  td .chip.gray { color: var(--text-3); background: var(--surface-3); border-color: var(--border-strong); }
+  .pos { color: var(--pos); }
+  .neg { color: var(--neg); }
+  .dim { color: var(--text-muted); }
+  .tablenote { font-size: 0.75rem; color: var(--text-3); max-width: 46rem; margin: 0.4rem 0 0; }
+
+  /* ---- charts ---- */
+  .chart { border: 1px solid var(--border); background: var(--surface); padding: 1.1rem 1.1rem 0.6rem; margin: 1.25rem 0 0; position: relative; }
+  .chart .chtitle { font-size: 0.8125rem; color: var(--text); font-weight: 600; margin: 0 0 0.1rem; font-family: var(--sans); }
+  .chart .chsub { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); margin: 0 0 0.75rem; }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .legend { display: flex; gap: 1rem; padding: 0.5rem 0 0.3rem; font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+  .legend .sw { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 0.35rem; vertical-align: -1px; }
+  #tip {
+    position: fixed; pointer-events: none; z-index: 10; display: none;
+    background: var(--surface-3); border: 1px solid var(--border-strong);
+    padding: 0.5rem 0.65rem; font-family: var(--mono); font-size: 0.6875rem;
+    color: var(--text-2); box-shadow: 0 6px 24px rgba(0,0,0,0.5); max-width: 16rem; white-space: nowrap;
+  }
+  #tip .tt { color: var(--text); font-weight: 700; margin-bottom: 0.2rem; }
+  #tip .row { display: flex; justify-content: space-between; gap: 1rem; }
+
+  /* ---- robustness strip ---- */
+  .taugrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin: 1.25rem 0 0.5rem; }
+  .tau { background: var(--surface); padding: 0.8rem 1rem; }
+  .tau .v { font-family: var(--mono); font-feature-settings: 'tnum'; font-size: 1.25rem; font-weight: 700; color: var(--pos); }
+  .tau .k { font-family: var(--mono); font-size: 0.625rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); margin-top: 0.25rem; line-height: 1.5; }
+
+  /* ---- caveats ---- */
+  ol.caveats { max-width: 46rem; padding-left: 1.3rem; counter-reset: cv; }
+  ol.caveats li { margin-bottom: 0.7rem; }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);
+    font-family: var(--mono); font-size: 0.6875rem; color: var(--text-3); line-height: 1.9;
+  }
+  footer code { font-size: 0.6875rem; }
+</style>
+
+<div class="wrap">
+
+  <div class="statusbar">
+    <span class="live"><span class="dot"></span>BOT ARENA</span>
+    <span>QUANTBOTS &middot; MANIFOLD CLONE</span>
+    <span class="right">LEDGER THROUGH 2026-07-14 &middot; SCRIPT 33</span>
+  </div>
+
+  <header class="hero">
+    <p class="kicker">Thurstone head-to-head rankings</p>
+    <h1>One leaderboard is impossible. There are two leagues.</h1>
+    <p class="lede">
+      Every resolved market where two or more bots held positions is treated as a race:
+      bots are the horses, realized return per mana is the finishing time, and a
+      lattice-Thurstone model turns 214 head-to-head duels into ability scores.
+      The data's own structure splits the fleet into a <strong>metals/energy league</strong>
+      and a <strong>cotton league</strong> that almost never race each other &mdash; so each
+      gets its own board, and no statistic can honestly join them.
+    </p>
+    <div class="statrow">
+      <div class="stat"><div class="v">97</div><div class="k">Races (resolved YES/NO)</div></div>
+      <div class="stat"><div class="v">11</div><div class="k">Bots in shared markets</div></div>
+      <div class="stat"><div class="v">214</div><div class="k">Pairwise duels</div></div>
+      <div class="stat"><div class="v">35.0%</div><div class="k">Tie share</div></div>
+      <div class="stat"><div class="v">&tau; = 1.000</div><div class="k">Every robustness check</div></div>
+    </div>
+  </header>
+
+  <section id="method">
+    <p class="seclabel">01 &middot; Method</p>
+    <h2>How the ranking is calculated</h2>
+    <p>
+      Only markets that resolved <strong>YES or NO</strong> count &mdash; roughly 93% of
+      clone markets cancel, and a cancellation refunds every bet, so cancelled and
+      still-open markets carry zero information about who bet better. That leaves 97
+      races out of 446 multi-bot markets, all commodity strike ladders
+      (LBMA metals, LME copper, WTI/Brent/RBOB, cerium, and four cotton series).
+    </p>
+    <div class="pipeline">
+      <div class="step">
+        <div class="n">Step 1 &middot; Score</div>
+        <div class="t">Realized return per mana</div>
+        <div class="d">Per bot per market: <code>log((payout + exits) / invested)</code>.
+        Size-invariant &mdash; raw PnL would rank bankrolls, not bettors. Payouts verified
+        by hand against ledger-credited amounts.</div>
+      </div>
+      <div class="step">
+        <div class="n">Step 2 &middot; Duel</div>
+        <div class="t">Races &rarr; pairwise duels</div>
+        <div class="d">Each race decomposes into all bot-vs-bot pairs. A duel is a tie
+        when returns land within 1% of each other (sensitivity checked at 0.5% and 2%).</div>
+      </div>
+      <div class="step">
+        <div class="n">Step 3 &middot; Fit</div>
+        <div class="t">Lattice-Thurstone + BT</div>
+        <div class="d">Abilities fit by per-duel MLE with identical tie treatment for
+        both links; Bradley-Terry as baseline, lattice at three tie-band units.
+        League leader anchored to &theta; = 0.</div>
+      </div>
+      <div class="step">
+        <div class="n">Step 4 &middot; Bootstrap</div>
+        <div class="t">Cluster bootstrap, B = 2000</div>
+        <div class="d">Strike ladders on one underlying resolve together, so resampling
+        is done over underlyings (8 clusters), not markets &mdash; CIs respect the real
+        correlation structure.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="leagues">
+    <p class="seclabel">02 &middot; The structural finding</p>
+    <h2>Why two leagues, not one board</h2>
+    <p>
+      The comparison graph is connected, but wins only flow <strong>one way</strong> between
+      the two groups: exactly two cross-group duels exist, and the metals side won both.
+      Under Ford's 1957 condition for paired-comparison models, an ability gap is only
+      estimable when wins flow in both directions across every possible split of the
+      field. Here they don't &mdash; the between-league gap is mathematically unbounded,
+      and the first joint fit "estimated" it at 6&ndash;11 ability units of pure
+      regularization artifact before this was caught. Ranking is therefore only valid
+      <em>within</em> each strongly connected component of the win graph.
+    </p>
+
+    <div class="split">
+      <div class="leaguecard">
+        <div class="lh"><span class="name">League 0 &middot; Metals / Energy</span><span class="sub">6 bots &middot; 61 races</span></div>
+        <div class="nodes">
+          <span class="node champ">commodity_spot_1</span>
+          <span class="node">pair_trading_1</span>
+          <span class="node">diffusion_mc_1</span>
+          <span class="node">news_drift_1</span>
+          <span class="node thin">ladder_arb_1</span>
+          <span class="node thin">ensemble_1</span>
+        </div>
+      </div>
+      <div class="bridge" role="img" aria-label="Only two cross-league duels, both won by the metals side">
+        <div class="edge">ladder_arb_1 beat cotton_fundamental_1<span class="arrow">&#8594;</span><span class="dim">cotton ladder</span></div>
+        <div class="edge">ladder_arb_1 beat mercury_ensemble_1<span class="arrow">&#8594;</span><span class="dim">cerium</span></div>
+        <div class="verdict">2 duels &middot; one direction &middot; gap unidentified</div>
+      </div>
+      <div class="leaguecard">
+        <div class="lh"><span class="name">League 1 &middot; Cotton</span><span class="sub">4 bots &middot; 36 races</span></div>
+        <div class="nodes">
+          <span class="node champ">cotton_fundamental_1</span>
+          <span class="node">commodity_1</span>
+          <span class="node">cftc_softs_1</span>
+          <span class="node thin">nass_cotton_1</span>
+        </div>
+      </div>
+    </div>
+    <p class="singleton">
+      <span class="mono">mercury_ensemble_1</span> is a league of one: a single race, a
+      single loss. Unrankable until it shares more markets.
+    </p>
+  </section>
+
+  <section id="league0">
+    <p class="seclabel">03 &middot; League 0</p>
+    <h2>Metals &amp; energy: commodity_spot_1 is the clear champion</h2>
+    <p>
+      A 55&ndash;9&ndash;19 duel record across 47 races puts <strong>commodity_spot_1</strong>
+      on top with a rank CI of 1&ndash;3 &mdash; and it is also the fleet's biggest real-money
+      earner. <strong>news_drift_1</strong> is reliably last among the well-sampled bots
+      (its rank CI excludes the podium). <strong>pair_trading_1</strong> and
+      <strong>diffusion_mc_1</strong> are a statistical dead heat. The two undefeated bots,
+      <strong>ladder_arb_1</strong> and <strong>ensemble_1</strong>, have only 6&ndash;7 races
+      each: strong point estimates, rank intervals spanning nearly the whole league.
+    </p>
+
+    <div class="chart" id="chart-l0">
+      <p class="chtitle">Ability &theta; with 95% bootstrap CI</p>
+      <p class="chsub">lattice u = 0.5855 &middot; anchor: commodity_spot_1 = 0 &middot; 2000 replicates over 8 underlying clusters</p>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th class="l">Bot</th><th>Races</th><th>W&ndash;L&ndash;T</th>
+          <th>&theta; lattice</th><th>&theta; BT</th>
+          <th>&theta; 95% CI</th><th>Rank</th><th>Rank 95% CI</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="l bot">commodity_spot_1<span class="chip">Champion</span></td><td>47</td><td>55&ndash;9&ndash;19</td><td>0.000</td><td>0.000</td><td>(&minus;0.33, +0.67)</td><td>1</td><td>1&ndash;3</td></tr>
+          <tr><td class="l bot">ladder_arb_1<span class="chip gray">Thin n</span></td><td>7</td><td>4&ndash;0&ndash;6</td><td>&minus;0.148</td><td>&minus;0.104</td><td>(&minus;0.78, +5.95)</td><td>2</td><td>1&ndash;4</td></tr>
+          <tr><td class="l bot">ensemble_1<span class="chip gray">Thin n</span></td><td>6</td><td>4&ndash;0&ndash;6</td><td>&minus;0.329</td><td>&minus;0.373</td><td>(&minus;0.93, +0.55)</td><td>3</td><td>1&ndash;5</td></tr>
+          <tr><td class="l bot">pair_trading_1</td><td>47</td><td>21&ndash;40&ndash;18</td><td>&minus;0.866</td><td>&minus;1.147</td><td>(&minus;1.33, &minus;0.40)</td><td>4</td><td>2&ndash;6</td></tr>
+          <tr><td class="l bot">diffusion_mc_1</td><td>39</td><td>22&ndash;35&ndash;21</td><td>&minus;0.938</td><td>&minus;1.251</td><td>(&minus;1.47, &minus;0.18)</td><td>4</td><td>2&ndash;6</td></tr>
+          <tr><td class="l bot">news_drift_1</td><td>26</td><td>5&ndash;27&ndash;22</td><td>&minus;1.255</td><td>&minus;1.678</td><td>(&minus;1.77, &minus;0.78)</td><td>6</td><td>4&ndash;6</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tablenote">&theta; is on the log-odds-like scale of the decisive link: at gap &theta; the stronger bot wins a decisive duel with probability F(&theta;). Rank = median bootstrap rank.</p>
+  </section>
+
+  <section id="league1">
+    <p class="seclabel">04 &middot; League 1</p>
+    <h2>Cotton: cotton_fundamental_1 wins a league that loses money</h2>
+    <p>
+      <strong>cotton_fundamental_1</strong> dominates on an 18&ndash;4&ndash;21 record,
+      solidly ahead of <strong>cftc_softs_1</strong>, with <strong>commodity_1</strong>
+      between them on a thin 10 races.
+    </p>
+    <div class="callout">
+      <p class="ct">Read before celebrating</p>
+      <p>Every rated bot in this league has <strong>negative</strong> realized PnL
+      (&minus;0.17 to &minus;0.29 per mana) and Brier scores worse than a coin flip
+      (0.49&ndash;0.60). This board crowns the <em>least-bad</em> cotton bettor. All of
+      its races sit inside the cotton complex, so bootstrap CIs here are lower bounds
+      on the true uncertainty.</p>
+    </div>
+
+    <div class="chart" id="chart-l1">
+      <p class="chtitle">Ability &theta; with 95% bootstrap CI</p>
+      <p class="chsub">lattice u = 0.5855 &middot; anchor: cotton_fundamental_1 = 0 &middot; 2000 replicates over 6 cotton series</p>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th class="l">Bot</th><th>Races</th><th>W&ndash;L&ndash;T</th>
+          <th>&theta; lattice</th><th>&theta; BT</th>
+          <th>&theta; 95% CI</th><th>Rank</th><th>Rank 95% CI</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="l bot">cotton_fundamental_1<span class="chip">Champion</span></td><td>32</td><td>18&ndash;4&ndash;21</td><td>0.000</td><td>0.000</td><td>(&minus;0.16, +0.43)</td><td>1</td><td>1&ndash;3</td></tr>
+          <tr><td class="l bot">commodity_1</td><td>10</td><td>4&ndash;2&ndash;14</td><td>&minus;0.156</td><td>&minus;0.203</td><td>(&minus;0.16, &minus;0.04)</td><td>2</td><td>1&ndash;2</td></tr>
+          <tr><td class="l bot">cftc_softs_1</td><td>31</td><td>3&ndash;18&ndash;22</td><td>&minus;0.607</td><td>&minus;0.825</td><td>(&minus;1.05, &minus;0.15)</td><td>3</td><td>1&ndash;3</td></tr>
+          <tr><td class="l bot">nass_cotton_1<span class="chip gray">Unrated</span></td><td>2</td><td>1&ndash;2&ndash;1</td><td class="dim">&minus;0.718</td><td class="dim">&minus;0.945</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td><td class="dim">&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="robust">
+    <p class="seclabel">05 &middot; Robustness</p>
+    <h2>The model choice does not matter here &mdash; exactly as predicted</h2>
+    <p>
+      Kendall's &tau; between the primary ordering and every alternative specification
+      is a perfect 1.000, in both leagues: Bradley-Terry vs lattice, all three lattice
+      tie-band units, and both tie-threshold sensitivities. This is the main paper's
+      thesis showing up out of domain &mdash; with 97 races the regime is
+      estimation-limited, so the data carries the ordering and the link family is
+      irrelevant.
+    </p>
+    <div class="taugrid">
+      <div class="tau"><div class="v num">1.000</div><div class="k">Lattice vs Bradley-Terry<br>both leagues</div></div>
+      <div class="tau"><div class="v num">1.000</div><div class="k">Units 0.1 / 0.5855 / 0.8002<br>both leagues</div></div>
+      <div class="tau"><div class="v num">1.000</div><div class="k">Tie band 0.5% / 1% / 2%<br>tie share 0.20&ndash;0.58</div></div>
+    </div>
+  </section>
+
+  <section id="money">
+    <p class="seclabel">06 &middot; The money view</p>
+    <h2>Companion table: who actually makes mana</h2>
+    <p>
+      The duel board measures <em>who beats whom on shared markets</em>. This table
+      measures raw economics across <strong>all</strong> resolved YES/NO markets each bot
+      touched, plus two execution-independent skill signals: mana-weighted hit rate and
+      the Brier score of each bot's own probability estimates.
+    </p>
+
+    <div class="chart" id="chart-pnl">
+      <p class="chtitle">Realized return per mana invested</p>
+      <p class="chsub">Bots with &ge; 8 resolved markets &middot; all resolved YES/NO markets, not only shared ones</p>
+      <div class="legend">
+        <span><span class="sw" style="background:var(--pos)"></span>Profit</span>
+        <span><span class="sw" style="background:var(--neg)"></span>Loss</span>
+      </div>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th class="l">Bot</th><th>Markets</th><th>Invested M$</th><th>Realized M$</th>
+          <th>Ret / mana</th><th>Hit rate</th><th>Brier</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="l bot">surface_arb_1<span class="chip gray">n = 2</span></td><td>2</td><td>66</td><td class="pos">+1,525</td><td class="pos">+23.11</td><td>100%</td><td>0.554</td></tr>
+          <tr><td class="l bot">term_structure_1<span class="chip gray">n = 3</span></td><td>3</td><td>15</td><td class="pos">+14</td><td class="pos">+0.95</td><td>100%</td><td>0.058</td></tr>
+          <tr><td class="l bot">conditional_arb_1<span class="chip gray">n = 1</span></td><td>1</td><td>15</td><td class="pos">+13</td><td class="pos">+0.87</td><td>100%</td><td>0.059</td></tr>
+          <tr><td class="l bot">commodity_spot_1<span class="chip">Top earner</span></td><td>80</td><td>3,398</td><td class="pos">+1,344</td><td class="pos">+0.40</td><td>92%</td><td>0.079</td></tr>
+          <tr><td class="l bot">nass_cotton_1<span class="chip gray">n = 2</span></td><td>2</td><td>294</td><td class="pos">+88</td><td class="pos">+0.30</td><td>100%</td><td>0.032</td></tr>
+          <tr><td class="l bot">enso_1<span class="chip">Best calibration</span></td><td>8</td><td>1,445</td><td class="pos">+364</td><td class="pos">+0.25</td><td>100%</td><td>0.004</td></tr>
+          <tr><td class="l bot">ladder_arb_1</td><td>136</td><td>3,228</td><td class="pos">+804</td><td class="pos">+0.25</td><td>19%</td><td>0.188</td></tr>
+          <tr><td class="l bot">pair_trading_1</td><td>47</td><td>1,791</td><td class="pos">+275</td><td class="pos">+0.15</td><td>94%</td><td>0.078</td></tr>
+          <tr><td class="l bot">diffusion_mc_1</td><td>40</td><td>2,861</td><td class="pos">+252</td><td class="pos">+0.09</td><td>89%</td><td>0.140</td></tr>
+          <tr><td class="l bot">mercury_ensemble_1<span class="chip gray">n = 4</span></td><td>4</td><td>147</td><td class="neg">&minus;13</td><td class="neg">&minus;0.09</td><td>51%</td><td>0.115</td></tr>
+          <tr><td class="l bot">cotton_fundamental_1</td><td>32</td><td>3,526</td><td class="neg">&minus;601</td><td class="neg">&minus;0.17</td><td>60%</td><td>0.490</td></tr>
+          <tr><td class="l bot">news_drift_1</td><td>37</td><td>1,705</td><td class="neg">&minus;341</td><td class="neg">&minus;0.20</td><td>66%</td><td>0.357</td></tr>
+          <tr><td class="l bot">commodity_1</td><td>14</td><td>589</td><td class="neg">&minus;136</td><td class="neg">&minus;0.23</td><td>39%</td><td>0.595</td></tr>
+          <tr><td class="l bot">cftc_softs_1</td><td>31</td><td>2,947</td><td class="neg">&minus;851</td><td class="neg">&minus;0.29</td><td>54%</td><td>0.502</td></tr>
+          <tr><td class="l bot">ensemble_1</td><td>25</td><td>597</td><td class="neg">&minus;382</td><td class="neg">&minus;0.64</td><td>19%</td><td>0.725</td></tr>
+          <tr><td class="l bot">llm_ag_coverage</td><td>8</td><td>453</td><td class="neg">&minus;453</td><td class="neg">&minus;1.00</td><td>36%</td><td>0.225</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tablenote">Hit rate = mana-weighted share of entries on the side that resolved. Brier scores each bot's own stored estimate against the outcome (0 = clairvoyant, 0.25 = coin flip); every entry ships an estimate, so coverage is 100%.</p>
+
+    <h3>What the two views disagree about &mdash; and why that's the point</h3>
+    <ul>
+      <li><strong>ladder_arb_1</strong> hits only 19% of its bets yet earns +0.25 per mana:
+        a longshot profile &mdash; many small losses, occasional large payouts.</li>
+      <li><strong>ensemble_1</strong> is 4&ndash;0&ndash;6 in shared races but &minus;0.64 per mana
+        overall: it wins its rare duels while bleeding on solo markets. The duel board
+        and the PnL table answer different questions.</li>
+      <li><strong>enso_1</strong> has the fleet's best calibration (Brier 0.004) on its
+        climate niche &mdash; nearly clairvoyant on 8 markets.</li>
+      <li>The cotton bots' Briers (0.49&ndash;0.60) are worse than guessing: systematic
+        miscalibration on their own ladders, not bad luck.</li>
+    </ul>
+  </section>
+
+  <section id="caveats">
+    <p class="seclabel">07 &middot; Caveats</p>
+    <h2>What this board does and does not measure</h2>
+    <ol class="caveats">
+      <li><strong>Queue position is baked in.</strong> The daily cycle runs bots in a fixed
+        priority order (verified: 100%/0% same-day precedence patterns in the ledger), so
+        earlier bots systematically get better prices on shared signals. The board measures
+        mana banked per mana staked <em>as deployed</em>; the Brier column is the
+        execution-independent view.</li>
+      <li><strong>Selection.</strong> Bots choose their own markets; comparisons are
+        conditional on overlap &mdash; that self-selection is exactly what created the league
+        split.</li>
+      <li><strong>Correlated races.</strong> Ladders on one underlying resolve together.
+        League 0's bootstrap respects this at the underlying level; league 1's series-level
+        clusters still share the cotton complex, so its CIs are optimistic.</li>
+      <li><strong>The board will move.</strong> 349 multi-bot markets are still open or
+        cancelled; re-running the script refreshes everything as they resolve. To join the
+        two leagues, the fix is operational, not statistical: have metals and cotton bots
+        trade the same markets for a couple of weeks to build a two-way bridge.</li>
+      <li><strong>Ledger gotcha</strong> (for future analysts):
+        <code>price_after = 1.0</code> on a RESOLUTION_CLOSE row does <em>not</em> mean the
+        bet won. Outcome attribution uses trade direction vs market resolution; payouts were
+        verified against ledger-credited amounts on winning and losing cases.</li>
+    </ol>
+  </section>
+
+  <footer>
+    Script: <code>scripts/33_bot_arena_ranking.py</code> &middot; Outputs: <code>results/bot_arena/</code>
+    (board, battles, returns, bootstrap, companion) &middot; Findings: <code>logs/BOT_ARENA_FINDINGS.md</code><br>
+    Data: <code>~/Bots/data/quantbots.sqlite</code> (read-only) &middot; Fits: lattice-Thurstone
+    (Cotton 2021, vendored) + Bradley-Terry, half-tie MLE &middot; Anchoring, tie handling, and
+    bootstrap conventions follow the Thurstone-vs-BT paper machinery.
+  </footer>
+</div>
+
+<div id="tip" role="status"></div>
+
+<script>
+(function () {
+  var css = getComputedStyle(document.documentElement);
+  var C = {
+    signal: css.getPropertyValue('--signal').trim(),
+    signalDim: css.getPropertyValue('--signal-dim').trim(),
+    pos: css.getPropertyValue('--pos').trim(),
+    neg: css.getPropertyValue('--neg').trim(),
+    text: css.getPropertyValue('--text').trim(),
+    text2: css.getPropertyValue('--text-2').trim(),
+    text3: css.getPropertyValue('--text-3').trim(),
+    muted: css.getPropertyValue('--text-muted').trim(),
+    border: css.getPropertyValue('--border').trim(),
+    borderS: css.getPropertyValue('--border-strong').trim(),
+    surface: css.getPropertyValue('--surface').trim(),
+    warn: css.getPropertyValue('--warn').trim()
+  };
+  var MONO = css.getPropertyValue('--mono').trim() || 'ui-monospace, Menlo, monospace';
+  var tip = document.getElementById('tip');
+
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+  function showTip(evt, html) {
+    tip.innerHTML = html;
+    tip.style.display = 'block';
+    var x = evt.clientX + 14, y = evt.clientY + 14;
+    var r = tip.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = evt.clientX - r.width - 14;
+    if (y + r.height > window.innerHeight - 8) y = evt.clientY - r.height - 14;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  function hideTip() { tip.style.display = 'none'; }
+
+  /* ---------- theta dot + CI plot ---------- */
+  function thetaPlot(mountId, rows, domain, ticks) {
+    var mount = document.getElementById(mountId);
+    var W = 920, ROW = 40, padL = 172, padR = 56, padT = 26, padB = 30;
+    var H = padT + rows.length * ROW + padB;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, 'aria-label': 'Ability estimates with 95% confidence intervals' });
+    var x0 = domain[0], x1 = domain[1];
+    function X(v) { return padL + (v - x0) / (x1 - x0) * (W - padL - padR); }
+
+    // grid + ticks
+    ticks.forEach(function (t) {
+      var zero = Math.abs(t) < 1e-9;
+      svg.appendChild(svgEl('line', { x1: X(t), x2: X(t), y1: padT, y2: H - padB,
+        stroke: zero ? C.borderS : C.border, 'stroke-width': 1 }));
+      var lbl = svgEl('text', { x: X(t), y: H - padB + 16, 'text-anchor': 'middle',
+        fill: zero ? C.text3 : C.muted, 'font-size': 10.5, 'font-family': MONO });
+      lbl.textContent = (t > 0 ? '+' : '') + t.toFixed(1);
+      svg.appendChild(lbl);
+    });
+    var axLbl = svgEl('text', { x: X((x0 + x1) / 2), y: H - 4, 'text-anchor': 'middle',
+      fill: C.muted, 'font-size': 9.5, 'letter-spacing': '0.08em', 'font-family': MONO });
+    axLbl.textContent = 'ABILITY θ  (ANCHOR = 0)';
+    svg.appendChild(axLbl);
+
+    rows.forEach(function (r, i) {
+      var cy = padT + i * ROW + ROW / 2;
+      var g = svgEl('g', { cursor: 'default' });
+
+      // bot label
+      var name = svgEl('text', { x: padL - 12, y: cy + 3.5, 'text-anchor': 'end',
+        fill: r.thin ? C.text3 : C.text2, 'font-size': 11.5, 'font-family': MONO });
+      name.textContent = r.bot;
+      g.appendChild(name);
+
+      // CI line (clamped)
+      var lo = Math.max(r.lo, x0), hi = Math.min(r.hi, x1);
+      g.appendChild(svgEl('line', { x1: X(lo), x2: X(hi), y1: cy, y2: cy,
+        stroke: r.champ ? C.signalDim : C.borderS, 'stroke-width': 2, 'stroke-linecap': 'round' }));
+      // CI end caps
+      [lo, hi].forEach(function (v, k) {
+        var clipped = (k === 1 && r.hi > x1) || (k === 0 && r.lo < x0);
+        if (!clipped) g.appendChild(svgEl('line', { x1: X(v), x2: X(v), y1: cy - 4, y2: cy + 4,
+          stroke: r.champ ? C.signalDim : C.borderS, 'stroke-width': 2 }));
+      });
+      // clip arrow annotation
+      if (r.hi > x1) {
+        var ar = svgEl('text', { x: X(x1) + 6, y: cy + 3.5, fill: C.text3, 'font-size': 10, 'font-family': MONO });
+        ar.textContent = '→ +' + r.hi.toFixed(2);
+        g.appendChild(ar);
+      }
+      // point estimate
+      g.appendChild(svgEl('circle', { cx: X(r.theta), cy: cy, r: 5,
+        fill: r.champ ? C.signal : C.text2, stroke: C.surface, 'stroke-width': 2 }));
+      // value label
+      var val = svgEl('text', { x: X(r.theta), y: cy - 11, 'text-anchor': 'middle',
+        fill: r.champ ? C.text : C.text3, 'font-size': 10.5, 'font-family': MONO, 'font-weight': r.champ ? 700 : 400 });
+      val.textContent = (r.theta > 0 ? '+' : r.theta < 0 ? '−' : '') + Math.abs(r.theta).toFixed(2);
+      g.appendChild(val);
+
+      // hover target
+      var hit = svgEl('rect', { x: 0, y: cy - ROW / 2, width: W, height: ROW, fill: 'transparent' });
+      hit.addEventListener('mousemove', function (e) {
+        showTip(e, '<div class="tt">' + r.bot + '</div>' +
+          '<div class="row"><span>θ (lattice)</span><span>' + r.theta.toFixed(3) + '</span></div>' +
+          '<div class="row"><span>95% CI</span><span>(' + r.lo.toFixed(2) + ', +' + r.hi.toFixed(2) + ')</span></div>' +
+          '<div class="row"><span>record W–L–T</span><span>' + r.rec + '</span></div>' +
+          '<div class="row"><span>races</span><span>' + r.races + '</span></div>' +
+          '<div class="row"><span>rank 95% CI</span><span>' + r.rank + '</span></div>');
+      });
+      hit.addEventListener('mouseleave', hideTip);
+      g.appendChild(hit);
+      svg.appendChild(g);
+    });
+    mount.appendChild(svg);
+  }
+
+  thetaPlot('chart-l0', [
+    { bot: 'commodity_spot_1', theta: 0.000, lo: -0.329, hi: 0.668, rec: '55–9–19', races: 47, rank: '1–3', champ: true },
+    { bot: 'ladder_arb_1', theta: -0.148, lo: -0.780, hi: 5.950, rec: '4–0–6', races: 7, rank: '1–4', thin: true },
+    { bot: 'ensemble_1', theta: -0.329, lo: -0.933, hi: 0.552, rec: '4–0–6', races: 6, rank: '1–5', thin: true },
+    { bot: 'pair_trading_1', theta: -0.866, lo: -1.330, hi: -0.400, rec: '21–40–18', races: 47, rank: '2–6' },
+    { bot: 'diffusion_mc_1', theta: -0.938, lo: -1.471, hi: -0.179, rec: '22–35–21', races: 39, rank: '2–6' },
+    { bot: 'news_drift_1', theta: -1.255, lo: -1.771, hi: -0.785, rec: '5–27–22', races: 26, rank: '4–6' }
+  ], [-2.0, 1.0], [-2.0, -1.5, -1.0, -0.5, 0, 0.5, 1.0]);
+
+  thetaPlot('chart-l1', [
+    { bot: 'cotton_fundamental_1', theta: 0.000, lo: -0.157, hi: 0.431, rec: '18–4–21', races: 32, rank: '1–3', champ: true },
+    { bot: 'commodity_1', theta: -0.156, lo: -0.156, hi: -0.036, rec: '4–2–14', races: 10, rank: '1–2' },
+    { bot: 'cftc_softs_1', theta: -0.607, lo: -1.051, hi: -0.155, rec: '3–18–22', races: 31, rank: '1–3' }
+  ], [-1.4, 0.7], [-1.0, -0.5, 0, 0.5]);
+
+  /* ---------- PnL bar chart ---------- */
+  (function () {
+    var rows = [
+      { bot: 'commodity_spot_1', v: 0.396, inv: '3,398', pnl: '+1,344', hit: '92%', brier: '0.079' },
+      { bot: 'enso_1', v: 0.252, inv: '1,445', pnl: '+364', hit: '100%', brier: '0.004' },
+      { bot: 'ladder_arb_1', v: 0.249, inv: '3,228', pnl: '+804', hit: '19%', brier: '0.188' },
+      { bot: 'pair_trading_1', v: 0.153, inv: '1,791', pnl: '+275', hit: '94%', brier: '0.078' },
+      { bot: 'diffusion_mc_1', v: 0.088, inv: '2,861', pnl: '+252', hit: '89%', brier: '0.140' },
+      { bot: 'cotton_fundamental_1', v: -0.170, inv: '3,526', pnl: '−601', hit: '60%', brier: '0.490' },
+      { bot: 'news_drift_1', v: -0.200, inv: '1,705', pnl: '−341', hit: '66%', brier: '0.357' },
+      { bot: 'commodity_1', v: -0.230, inv: '589', pnl: '−136', hit: '39%', brier: '0.595' },
+      { bot: 'cftc_softs_1', v: -0.289, inv: '2,947', pnl: '−851', hit: '54%', brier: '0.502' },
+      { bot: 'ensemble_1', v: -0.640, inv: '597', pnl: '−382', hit: '19%', brier: '0.725' },
+      { bot: 'llm_ag_coverage', v: -1.000, inv: '453', pnl: '−453', hit: '36%', brier: '0.225' }
+    ];
+    var mount = document.getElementById('chart-pnl');
+    var W = 920, ROW = 30, padL = 172, padR = 64, padT = 14, padB = 30;
+    var H = padT + rows.length * ROW + padB;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, 'aria-label': 'Realized return per mana by bot' });
+    var x0 = -1.05, x1 = 0.5;
+    function X(v) { return padL + (v - x0) / (x1 - x0) * (W - padL - padR); }
+
+    [-1.0, -0.75, -0.5, -0.25, 0, 0.25, 0.5].forEach(function (t) {
+      var zero = Math.abs(t) < 1e-9;
+      svg.appendChild(svgEl('line', { x1: X(t), x2: X(t), y1: padT, y2: H - padB,
+        stroke: zero ? C.borderS : C.border, 'stroke-width': 1 }));
+      var lbl = svgEl('text', { x: X(t), y: H - padB + 16, 'text-anchor': 'middle',
+        fill: zero ? C.text3 : C.muted, 'font-size': 10.5, 'font-family': MONO });
+      lbl.textContent = (t > 0 ? '+' : '') + t.toFixed(2);
+      svg.appendChild(lbl);
+    });
+    var axLbl = svgEl('text', { x: X((x0 + x1) / 2), y: H - 4, 'text-anchor': 'middle',
+      fill: C.muted, 'font-size': 9.5, 'letter-spacing': '0.08em', 'font-family': MONO });
+    axLbl.textContent = 'REALIZED RETURN PER MANA INVESTED';
+    svg.appendChild(axLbl);
+
+    rows.forEach(function (r, i) {
+      var cy = padT + i * ROW + ROW / 2;
+      var g = svgEl('g', {});
+      var name = svgEl('text', { x: padL - 12, y: cy + 3.5, 'text-anchor': 'end',
+        fill: C.text2, 'font-size': 11.5, 'font-family': MONO });
+      name.textContent = r.bot;
+      g.appendChild(name);
+
+      var neg = r.v < 0;
+      var bx = neg ? X(r.v) : X(0), bw = Math.abs(X(r.v) - X(0));
+      var bar = svgEl('rect', { x: bx, y: cy - 7, width: Math.max(bw, 1), height: 14,
+        fill: neg ? C.neg : C.pos, rx: 0 });
+      // rounded data end only (away from baseline): emulate with clip via two rects is overkill; use rx on thin bar
+      bar.setAttribute('rx', 2);
+      g.appendChild(bar);
+      // 2px surface gap at the baseline so + and − families never touch
+      g.appendChild(svgEl('line', { x1: X(0), x2: X(0), y1: cy - 9, y2: cy + 9, stroke: C.surface, 'stroke-width': 2 }));
+
+      var vl = svgEl('text', { x: neg ? bx - 6 : bx + bw + 6, y: cy + 3.5,
+        'text-anchor': neg ? 'end' : 'start', fill: C.text3, 'font-size': 10.5, 'font-family': MONO });
+      vl.textContent = (neg ? '−' : '+') + Math.abs(r.v).toFixed(2);
+      g.appendChild(vl);
+
+      var hit = svgEl('rect', { x: 0, y: cy - ROW / 2, width: W, height: ROW, fill: 'transparent' });
+      hit.addEventListener('mousemove', function (e) {
+        showTip(e, '<div class="tt">' + r.bot + '</div>' +
+          '<div class="row"><span>return / mana</span><span>' + (r.v > 0 ? '+' : '') + r.v.toFixed(3) + '</span></div>' +
+          '<div class="row"><span>invested</span><span>M$ ' + r.inv + '</span></div>' +
+          '<div class="row"><span>realized</span><span>M$ ' + r.pnl + '</span></div>' +
+          '<div class="row"><span>hit rate</span><span>' + r.hit + '</span></div>' +
+          '<div class="row"><span>Brier</span><span>' + r.brier + '</span></div>');
+      });
+      hit.addEventListener('mouseleave', hideTip);
+      g.appendChild(hit);
+      svg.appendChild(g);
+    });
+    mount.appendChild(svg);
+  })();
+})();
+</script>

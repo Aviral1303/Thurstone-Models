@@ -1097,3 +1097,70 @@ corrections applied (inventory + findings docs where propagated):
 figure/table requests or fact-checks from the user + Aviral.
 
 ---
+
+## 2026-07-14 — Side project: bot arena ranking on the Manifold clone (script 33)
+
+User request (approved design same day): rank the quantbots
+(~/Bots/data/quantbots.sqlite) head-to-head on shared clone markets with
+the Thurstone machinery — bots as horses, resolved YES/NO multi-bot
+markets as races, performance = realized log-return per mana invested,
+pairwise decomposition, half_tie fits (BT + lattice u 0.1/0.5855/0.8002),
+cluster bootstrap over underlyings, B=2000.
+
+Data: 97 races / 11 bots / 214 pairs / tie share 0.350 (of 446 multi-bot
+markets — the rest unresolved or cancelled; ~93% clone cancel rate makes
+resolved-only the correct universe).
+
+**Structural finding**: win digraph is not strongly connected — Ford's
+condition fails on a 2-edge one-way bridge, so a single board is NOT
+identified. Two leagues (SCCs): metals/energy
+{commodity_spot, pair_trading, diffusion_mc, news_drift, ladder_arb,
+ensemble} and cotton {cotton_fundamental, commodity_1, cftc_softs}.
+First-run joint fit put the cross-group gap at −6..−11 = pure ridge
+artifact (caught before reporting; never cite).
+
+**Boards**: league 0: commodity_spot_1 clear #1 (55-9-19; rank CI 1–3),
+news_drift_1 last among well-sampled (rank CI 4–6); pair_trading vs
+diffusion_mc unresolved. League 1: cotton_fundamental_1 #1 (18-4-21) >
+cftc_softs_1; NB whole cotton league is PnL-negative — it ranks the
+least-bad. Robustness: Kendall tau = 1.000 across BT/lattice, all units,
+both tie-eps — the paper's estimation-limited equivalence, out of domain.
+
+Verification: payout computation hand-checked against ledger credited
+amounts (win + loss cases exact). Gotcha logged: RESOLUTION_CLOSE
+price_after=1.0 does not mean the bet won. Caveats: deterministic daily
+execution order (verified 100%/0% precedence) → board includes queue
+position; league-1 CIs are lower bounds (single-commodity clusters).
+
+Outputs: scripts/33_bot_arena_ranking.py, results/bot_arena/*,
+logs/BOT_ARENA_FINDINGS.md. Main paper track unchanged (still standing by).
+
+---
+
+## 2026-07-15 — Platform-wide leaderboard completed (script 34) + weighted-vote speedup in fit.py
+
+Finished yesterday's in-flight work: script 34 extends the bot arena to
+EVERY account on the clone via the v0 API. Fetch was verified complete
+(6,096,312 bets back to platform genesis 2026-02-18; consistent snapshot
+2026-07-14 ~16:03); only `analyze` remained.
+
+**Perf fix required**: one lattice fit on the 2.48M platform duels took
+633 s → B=1000 bootstrap ≈ a week. Added exact weighted-vote support to
+src/fit.py (optional `weight` column; k identical votes = one row with
+weight k, same likelihood). Verified: 20/20 tests pass, weighted==raw fit
+to 1e-4 on real data, weighted cluster bootstrap == mod33's concat
+version at the same seed (identical rank frames, |dθ|~2e-6). Duels
+aggregate 2,482,500 → 19,027 rows; analyze now ~25 min total, bootstrap
+1000/1000 replicates 0 failures.
+
+**Results** (results/platform_leaderboard/, logs/BOT_ARENA_FINDINGS.md §2):
+5,795 races, 163 traders, giant SCC = 159 → ONE identified board (the
+dense platform graph bridges what our 2-league private ledger could not);
+130 rated at ≥20 races. Kendall τ 0.995–0.997 across links/units,
+0.981–0.985 across tie-ε — near-total but no longer exactly 1.000: with
+2.5M duels the estimation-limited regime starts to lift, as the paper
+predicts. #1 KelvinWaveTrader (rank CI 1–5); best high-volume trader
+MultiLensBot (4,937 races, CI 3–10). Our fleet is mid-table-to-bottom
+(best: cotton_fundamental_1 #61, commodity_spot_1 #69 of 130) — script
+33's board ranked relative skill among our bots only. Personal account
+MikhailTal is dead last (130/130, −0.84/mana). Main paper track unchanged.

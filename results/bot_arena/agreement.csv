@@ -1,0 +1,11 @@
+league,comparison,kendall_tau,tie_share
+0,lattice_u0.5855 vs bt,0.9999999999999999,
+0,lattice_u0.5855 vs lattice_u0.1,0.9999999999999999,
+0,lattice_u0.5855 vs lattice_u0.8002,0.9999999999999999,
+0,lattice_u0.5855 eps=0.01 vs eps=0.005,0.9999999999999999,0.20382165605095542
+0,lattice_u0.5855 eps=0.01 vs eps=0.02,0.9999999999999999,0.4012738853503185
+1,lattice_u0.5855 vs bt,1.0,
+1,lattice_u0.5855 vs lattice_u0.1,1.0,
+1,lattice_u0.5855 vs lattice_u0.8002,1.0,
+1,lattice_u0.5855 eps=0.01 vs eps=0.005,1.0,0.5272727272727272
+1,lattice_u0.5855 eps=0.01 vs eps=0.02,1.0,0.5818181818181818

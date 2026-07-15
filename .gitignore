@@ -23,3 +23,5 @@ vendor/thurstone/
 kaggle.json
 .claude/settings.local.json
 .gstack/
+results/platform_leaderboard/battles.csv
+results/platform_leaderboard/returns_all.csv

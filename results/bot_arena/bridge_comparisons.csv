@@ -1,0 +1,3 @@
+model_a,model_b,winner,market_id,cluster,series
+ladder_arb_1,mercury_ensemble_1,model_a,ZQcL2nqCdZ,cerium,will us cerium metal price (-month avg) exceed usd/kg for may ?
+cotton_fundamental_1,ladder_arb_1,model_b,puRNutURNg,cotton,"will ice cotton no. front-month futures exceed cents/lb on june , ?"

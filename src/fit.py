@@ -48,6 +48,7 @@ class VoteData:
     i: np.ndarray  # index of model_a
     j: np.ndarray  # index of model_b
     y: np.ndarray  # 0: a wins, 1: b wins, 2: dead-heat tie, 3: both-bad tie
+    w: np.ndarray  # vote multiplicity (an optional 'weight' column; default 1)
 
     @classmethod
     def from_battles(cls, battles: pd.DataFrame) -> "VoteData":
@@ -58,11 +59,18 @@ class VoteData:
         if y.isna().any():
             bad = battles.loc[y.isna(), "winner"].unique()
             raise ValueError(f"unrecognized winner labels: {bad}")
+        if "weight" in battles.columns:
+            w = battles["weight"].to_numpy(np.float64)
+            if (w < 0).any() or not np.isfinite(w).all():
+                raise ValueError("weights must be finite and non-negative")
+        else:
+            w = np.ones(len(battles))
         return cls(
             models=models,
             i=battles["model_a"].map(midx).to_numpy(np.int64),
             j=battles["model_b"].map(midx).to_numpy(np.int64),
             y=y.to_numpy(np.int64),
+            w=w,
         )
 
 
@@ -75,10 +83,10 @@ def _rows_half_tie(data: VoteData, include_both_bad: bool):
     w_idx = np.concatenate([data.i[a_win], data.j[b_win], data.i[tie_mask], data.j[tie_mask]])
     l_idx = np.concatenate([data.j[a_win], data.i[b_win], data.j[tie_mask], data.i[tie_mask]])
     wts = np.concatenate([
-        np.full(a_win.sum(), 2.0),
-        np.full(b_win.sum(), 2.0),
-        np.ones(tie_mask.sum()),
-        np.ones(tie_mask.sum()),
+        2.0 * data.w[a_win],
+        2.0 * data.w[b_win],
+        data.w[tie_mask],
+        data.w[tie_mask],
     ])
     return w_idx, l_idx, wts
 
@@ -93,6 +101,10 @@ def fit_gaplink(
     full_output: bool = False,
 ):
     """Fit abilities (higher = better) by per-vote MLE. Returns mean-centered Series.
+
+    An optional 'weight' column gives each row a vote multiplicity: k identical
+    votes may be collapsed into one row with weight k, leaving the likelihood
+    (and hence the fit) unchanged. Without the column every row counts once.
 
     With full_output=True returns (series, penalized_nll_total) — the total
     (unnormalized) negative log-likelihood at the optimum, for profiling
@@ -125,7 +137,8 @@ def fit_gaplink(
         if include_both_bad:
             tie_mask |= data.y == 3
         t_i, t_j = data.i[tie_mask], data.j[tie_mask]
-        norm = 1.0 / (len(w_idx) + len(t_i))
+        w_dec, w_tie = data.w[dec], data.w[tie_mask]
+        norm = 1.0 / (w_dec.sum() + w_tie.sum())
 
         def negll(theta):
             g_dec = theta[w_idx] - theta[l_idx]
@@ -133,11 +146,11 @@ def fit_gaplink(
             g_tie = theta[t_i] - theta[t_j]
             logd, dlogd = link.log_p_tie(g_tie)
             grad = np.zeros(n)
-            np.add.at(grad, w_idx, dlogw)
-            np.add.at(grad, l_idx, -dlogw)
-            np.add.at(grad, t_i, dlogd)
-            np.add.at(grad, t_j, -dlogd)
-            nll = -(np.sum(logw) + np.sum(logd)) + l2 * theta @ theta
+            np.add.at(grad, w_idx, w_dec * dlogw)
+            np.add.at(grad, l_idx, -(w_dec * dlogw))
+            np.add.at(grad, t_i, w_tie * dlogd)
+            np.add.at(grad, t_j, -(w_tie * dlogd))
+            nll = -(w_dec @ logw + w_tie @ logd) + l2 * theta @ theta
             return (norm * nll, norm * (-grad + 2 * l2 * theta))
 
     else:

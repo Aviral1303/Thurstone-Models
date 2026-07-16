@@ -46,7 +46,7 @@
 Before making a model more expressive, it is worth asking whether the
 errors it is meant to fix are the errors the system actually makes. We
 develop that question into a working method for preference ranking.
-The idea is to compute, before fitting anything, an \emph{effect
+The idea is to compute, before the comparison is fit, an \emph{effect
 ceiling}: the largest improvement any richer model in a candidate
 family could deliver, given where the data actually live. The ceiling
 then anchors an \emph{error budget} that assigns the system's observed
@@ -60,9 +60,12 @@ matchups occupy, the two model families never disagree by more than
 about one percentage point of win probability, so almost no
 improvement was available to find. A pre-registered audit of 1.67
 million votes, replicated on a second release, confirms the ceiling
-everywhere. What actually limits the system is estimation error,
-cold-start coverage, and nonstationary drift, each of which exceeds
-the ceiling by one to two orders of magnitude. Our evidence covers one platform and one family of
+on the decisive channel, and the one channel that exceeds its
+ceiling, ties, does so through drift rather than link shape. What
+actually limits the system is estimation error, cold-start coverage,
+and nonstationary drift; the two that admit the ceiling's unit exceed
+it by one to two orders of magnitude, and cold-start coverage is not
+expressible in that unit at all. Our evidence covers one platform and one family of
 links, so we state the broader lesson as a conjecture the case study
 supports rather than proves: expressiveness pays only where
 approximation error is the binding constraint, and the ceiling tells
@@ -80,8 +83,8 @@ progress, and evaluating it sounds straightforward: fit both models
 and see which one wins.
 
 This paper argues that the comparison should start somewhere else.
-Before fitting anything, one can often compute how large the richer
-model's advantage could possibly be. The two models are functions, the
+Before fitting either candidate, one can often compute how large the
+richer model's advantage could possibly be. The two models are functions, the
 data occupy a known region, and if the functions barely differ on that
 region, then no amount of fitting will separate them. We call this
 computation an effect ceiling. When the ceiling comes out far below
@@ -96,7 +99,8 @@ model can express, or by what its data can estimate?
 Two boundaries on that question belong up front rather than in the
 limitations. The method applies when the competing models make
 comparable predictions from a shared input whose distribution can be
-observed before fitting, and when the application admits a defensible
+observed before the comparison is fit, and when the application
+admits a defensible
 answer to how small a difference is too small to matter. Rating
 systems, reward models, and discrete choice models generally qualify;
 comparisons that change the prediction target or the feature set do
@@ -109,7 +113,8 @@ the kind statistics has long used to say when two hypotheses cannot be
 told apart~\citep{lecam1986, coverthomas2006}. The identity behind it
 is standard theory of proper scoring
 rules~\citep{gneitingraftery2007}. What we claim is the assembly:
-computing these quantities before any model is fit, as a design step,
+computing these quantities before the comparison is fit, as a design
+step,
 and letting them set the expectations an audit then confirms or
 refutes.
 
@@ -131,8 +136,10 @@ The ceiling says the hypothesis never had room to be true. Real
 matchups concentrate near toss-ups, where every sensible link agrees.
 On the observed distribution of ability gaps, the best possible
 advantage of any link in this Thurstonian family over the logistic is
-between 0.23 and 0.31 times our minimum practical difference, a
-threshold we derive from a ten-Elo-point reading error. At no observed
+at most 0.23 times our minimum practical difference for decisive
+votes, a threshold we derive from a ten-Elo-point reading error, and
+the analogous ceiling for the tie mechanisms is at most 0.31 times
+the separate threshold we derive for tie prediction. At no observed
 matchup do the two links disagree by more than about one percentage
 point of win probability. We prove the general version of this
 argument as Theorem~\ref{thm:ceiling}: when two model families are
@@ -140,7 +147,11 @@ uniformly close on the support of the data, no fitting procedure, and
 in fact no state of the world, can separate them by more than a
 computable amount.
 
-The audit confirms the ceiling in every direction we test. Across
+The audit confirms the ceiling on the decisive channel in every
+direction we test, and the one measurement that exceeds a ceiling,
+on the tie channel, does so through drift and a single loud month
+rather than through link shape, for reasons
+Section~\ref{sec:ceiling} spells out. Across
 sixteen months of pool growth, refit stability is statistically
 indistinguishable between the families. Held-out calibration is
 practically equivalent, with a real but sub-practical lean toward
@@ -151,8 +162,8 @@ independent 2025 release. Meanwhile the budget shows where the error
 actually lives: all methods share the same forty-six percent
 underconfidence on next-month votes, up to three quarters of
 next-month votes involve a brand-new model that no ability estimator
-can score, and the tie rate itself drifts by half over the study
-period. Each of these exceeds the entire link-choice ceiling by one to
+can score, and the tie rate itself drifts upward by nearly three
+quarters over the study period. Each of these exceeds the entire link-choice ceiling by one to
 two orders of magnitude.
 
 Three findings give the audit its texture. First, the families do
@@ -219,9 +230,9 @@ of distributions to indistinguishability of
 hypotheses~\citep{coverthomas2006, lecam1986}; and verdicts framed as
 practical equivalence descend from the two one-sided tests tradition
 in bioequivalence~\citep{schuirmann1987}. What we believe is new is
-the placement: these quantities computed before fitting, on the
-empirical design distribution, as the opening step of a model-family
-comparison, together with the demonstration that a deployed system of
+the placement: these quantities computed before either candidate is
+fit, on the empirical design distribution, as the opening step of a
+model-family comparison, together with the demonstration that a deployed system of
 current interest sits deep inside the regime they describe.
 
 Cotton's lattice construction deserves a careful sentence, because we
@@ -257,7 +268,8 @@ static model we test rather than distinguishing between them.
 
 Suppose model $i$ has an ability $\theta_i$, and a battle between $A$
 and $B$ is decided by which side draws the higher performance
-$X = \theta + \varepsilon$, with independent noise on each side. Only
+$X = \theta + \varepsilon$, with independent draws of one shared
+noise distribution on the two sides. Only
 the difference between abilities matters, so any such model reduces to
 an increasing curve in the gap $g = \theta_A - \theta_B$:
 \begin{equation}
@@ -293,7 +305,10 @@ D(g) = \sum_j a_j(g)\, b_j, \qquad
 L(g) = W(-g),
 \end{equation}
 and a tie is a dead heat: both draws in one cell, as in
-Figure~\ref{fig:model}a. The width $u$ is the family's single tie
+Figure~\ref{fig:model}a. The identity $L(g) = W(-g)$ rests on the
+shared noise distribution, which makes the difference of the two
+performances symmetric even when the noise itself is skewed. The
+width $u$ is the family's single tie
 parameter, and we fit it by profile likelihood. Conditional on a
 decisive outcome the family predicts with
 \begin{equation}\label{eq:fdec}
@@ -362,7 +377,8 @@ really is the richer family: outcomes are generated by some lattice
 link $F_u$. The simpler family still gets to fit itself, so the
 richer family's true advantage is only what the best logistic
 concedes. With $\hat P$ the empirical distribution of fitted gaps,
-that concession is
+which does require one baseline ability fit before either candidate
+link is compared, that concession is
 \begin{equation}\label{eq:ceilingdef}
 C \;=\; \min_{s>0}\; \mathbb{E}_{g\sim\hat P}\,
 \mathrm{KL}\!\left(\mathrm{Bern}(F_u(g)) \,\big\|\,
@@ -432,10 +448,20 @@ minimum practical difference defined in Section~\ref{sec:data}. Part
 closes it to 0.009 at the primary width, and to at most 0.23 across
 every width and skew we consider plausible. The tie-mechanism
 analogue, computed on three-outcome predictions, is at most 0.31 in
-both truth directions. These are upper bounds on what fitting could
-ever recover, computed before any experiment ran, and they set the
-honest expectation for everything in Section~\ref{sec:results}:
-practical equivalence, everywhere.
+both truth directions. It is worth being precise about what that
+number bounds: the expected advantage of the truth over the competing
+family's best member, computed on the pooled gap distribution. A
+measured fit-versus-fit separation can exceed it when the fitted
+competitor is estimated rather than optimal, and when the world
+drifts so that neither family is the truth; and a single window
+whose gap distribution differs from the pooled one, a month of
+near-peer voting, say, is not bound by it at all. These are upper
+bounds on what fitting could ever recover under in-family truth on
+the pooled design, computed before either candidate was fit, and
+they set the honest expectation for everything in
+Section~\ref{sec:results}: practical equivalence on the decisive
+channel, and a tie channel whose one excess
+(Section~\ref{sec:rq4}) is of exactly the kinds just listed.
 
 Three clarifications keep the theorem honest. Part (i) holds for every
 outcome sequence, dependent or adversarial included, because the bound
@@ -483,8 +509,8 @@ that fills in that figure, and we would argue the budget, not any
 single verdict, is the real product of the exercise. A reader
 comparing logistic regression to a neural network, or Plackett--Luce
 to Mallows, or Gaussian to Student-$t$ noise, can compute the same
-two objects on their own data tomorrow, and will know before fitting
-whether the comparison can matter.
+two objects on their own data tomorrow, and will know before the
+comparison is fit whether it can matter.
 
 % ==================================================================
 \section{The case study: data and protocol}\label{sec:data}
@@ -495,22 +521,25 @@ second, from April 2023 through August 2024. The platform's own
 deduplication retains 1,670,250 battles, and all fits use that
 subset. Outcomes are a win for either side, a tie, or a tie marked
 ``both bad.'' Quality ties are 20.45 percent of the votes that are
-not both-bad, up from 13.1 percent in the first three months, a
-drift that will matter repeatedly. The replication set is the 2025
+not both-bad over the full period, climbing from 13.1 percent in the
+first three months to 22.5 percent in the final month, a drift that
+will matter repeatedly. The replication set is the 2025
 release: 135,634 battles across 53 models over fourteen weeks.
 
 Before comparing anything we verified that the pipeline reproduces
 production. Refitting Bradley--Terry at the published leaderboard's
 own timestamp reproduces the published ratings to a mean absolute
 error of 0.18 Elo points with Spearman correlation 0.99997 across all
-128 published models. Extending the check to ten published snapshots
+128 published models; the log's remaining model, days old at the
+snapshot, had not yet appeared on the published table. Extending the check to ten published snapshots
 spanning nine months, the era-appropriate variant achieves between
 0.18 and 1.01 Elo points on nine of ten; the tenth (2024-04-03) reads
 2.26, and diagnosis explains it. One model, five hours into the pool
 at the snapshot instant, carries a 72-point residual by itself, so the
 published snapshot and our archived log evidently disagree about that
 model's first hours of votes; excluding the single hours-old entrant
-brings the snapshot to 1.35, in line with its neighbors.
+brings the snapshot to 1.35, much closer to its neighbors' 0.18 to
+1.01.
 
 Verdicts need a threshold, because at a million votes statistical
 significance is free. We derive a minimum practical difference from a
@@ -605,16 +634,17 @@ Nothing separates them. The median paired difference in Kendall's
 $\tau_b$ is $+0.00026$, and the mean is $+0.0011$ with a
 window-bootstrap interval from $-0.0001$ to $+0.0025$ that touches
 zero; the lattice is more stable in seven windows, less in four, tied
-in two; the means are 0.98469 and 0.98358; the
-largest single-window difference is 0.00713. The picture repeats at
+in two; the mean $\tau_b$ is 0.98358 for Bradley--Terry and 0.98469
+for the lattice; the largest single-window difference is 0.00713. The picture repeats at
 all three lattice widths, at one-month and three-month horizons, and
 for both incumbent definitions. No incumbent moved more than five
 positions in any window under either method, and ability drift per
 month is 1.70 to 1.77 Elo-equivalent points for every method. The
 informative contrast in Figure~\ref{fig:rq1} is vertical, not
 between the curves: stability itself climbs from $\tau_b$ of 0.968
-to 0.997 as the pool matures, a swing two orders of magnitude larger
-than any between-method difference. Stability is governed by sample
+to 0.997 as the pool matures, a swing twenty-six times the mean
+between-method difference and four times the largest single-window
+one. Stability is governed by sample
 size, not by link. That is the budget's first entry, and it is an
 estimation entry.
 
@@ -713,7 +743,8 @@ budget's drift and coverage lines. Every method's held-out
 predictions are underconfident by the same factor: recalibration
 slopes are 1.46 for all four models, and integrating parameter
 uncertainty into the predictions barely moves anything, shifting the
-pooled difference from 0.121 to 0.117 and the slopes to 1.46. The
+pooled difference from 0.121 to 0.117 and the slopes from 1.455 to
+1.459. The
 miscalibration is the world moving, not the estimator misfiring. And
 up to three quarters of next-month decisive votes involve a model
 with no training votes at all, which no link, prior, or smoothing
@@ -776,7 +807,12 @@ the stress test below. Positive again favors the lattice.
 The pooled verdict is inconclusive, and this time the episode is
 real data. The estimate is $+0.838$ threshold units with an interval
 from $+0.017$ to $+2.542$, the lattice ahead in ten of thirteen
-windows, and one window at $+9.55$ carrying the total. That window
+windows, and one window at $+9.55$ carrying the total. The estimate
+exceeds the pre-computed tie ceiling of 0.31, which is possible
+exactly because that ceiling binds in-family truth on the pooled gap
+design; the loud window is one month of near-peer voting that the
+pooled design does not describe, so the excess itself is evidence
+that the tie channel's error is drift, not link shape. That window
 decomposes cleanly: its tie votes contribute $+407$ nats to the
 lattice against $-301$ on decisive votes, led by near-peer pairs
 from the same families, the kind of sibling matchups where ties are
@@ -826,8 +862,9 @@ statement than calling them equivalent.
 \includegraphics[width=\linewidth]{figures/fig_rq4_traj.pdf}
 \caption{Tie parameters drift together. Panel (a): per-window
 profiled parameters rise as the platform's tie share rises, and the
-endpoints reproduce two profile fits computed independently months
-earlier, shown dotted. Panel (b): the shape difference between the
+lattice width's endpoints reproduce two lattice profile fits
+computed independently months earlier, shown as dotted reference
+lines. Panel (b): the shape difference between the
 two bands is stable throughout. Source:
 \texttt{rq4\_param\_trajectories.csv}.}
 \label{fig:rq4traj}
@@ -836,12 +873,14 @@ two bands is stable throughout. Source:
 Both tie parameters also drift, and the drift cross-validates. Over
 the sixteen months the profiled Davidson parameter rises from 0.376
 to 0.559 and the lattice width from 0.594 to 0.803, tracking the
-raw tie share as it climbs from 13.1 to 20.45 percent
+raw tie share as it climbs from 13.1 percent in the first three
+months to 22.5 percent in the final month
 (Figure~\ref{fig:rq4traj}). Any single pooled tie parameter would
 average a moving target, which is why every experiment profiles per
-window. As an internal check, the windowed trajectory's endpoints
-reproduce, to about 0.01, two estimates computed months earlier by
-a different procedure on the early and full samples.
+window. As an internal check, the windowed width trajectory's
+endpoints reproduce, to about 0.01, two lattice profile estimates
+computed months earlier by a different procedure on the early and
+full samples.
 
 Finally, we tried to put a price on entanglement, and the honest
 report is that our first price did not survive its own stress test.
@@ -891,11 +930,13 @@ lean directions, same structure.
 
 One signal in this data survives every attribution we attempt, and
 it deserves its own section precisely because no model we test
-explains it. In two specific eras, every link fails triple
-additivity the same way. The blocks beginning in late August and
-late December of 2023 show mean squared residuals of 1.57 and 1.65,
-with 13 to 14 percent of triples beyond two standard units against
-a nominal 4.6, while other blocks sit near one. Splitting blocks in
+explains it. In two specific eras, with a weaker echo in a third,
+every link fails triple additivity the same way. The blocks
+beginning in late August and late December of 2023 show mean squared
+residuals of 1.57 and 1.65, with 13 to 14 percent of triples beyond
+two standard units against a nominal 4.6; the block beginning in
+mid-February 2024 is intermediate at 1.37, and the two cleanest
+blocks sit near one. Splitting blocks in
 half localizes the first episode to roughly late September and
 October and shows the second persisting undiminished in both
 halves, which rules out gradual preference drift within the window.
@@ -950,7 +991,8 @@ belong to estimation and drift: a shared factor of 1.46
 underconfidence on next-month votes, up to three quarters of votes
 unscoreable for want of any training data, single months in which
 one episode moves a verdict by ten threshold units, and a tie rate
-that drifts by half across the study period. A platform operator
+that drifts upward by nearly three quarters across the study
+period. A platform operator
 reading this budget knows the order of work, because each
 recommendation is a budget line read back. Cold starts first: shrink
 new entrants' estimates explicitly, since ridge buys the protection no
@@ -984,7 +1026,7 @@ accuracy, and buying it is only rational when approximation error is
 the binding constraint.
 
 We would also defend the audit's conduct as a contribution. The
-ceilings set expectations before any fit. The synthetic gates
+ceilings set expectations before either candidate was fit. The synthetic gates
 certified that the machinery could detect what it claimed to detect.
 The fixed classifier refused two convenient readings. And the
 protocol caught our own false mechanism when one skeptical baseline
@@ -1005,7 +1047,11 @@ The ridge demonstration rests on one natural experiment. The evidence
 for the overconfidence mechanism is directional rather than monotone.
 The empirical entanglement cost did not survive its own stress test
 and is withdrawn, which leaves the structural theorem without a
-measured counterpart here. The method itself carries a requirement the
+measured counterpart here. The ceiling's gap
+distribution is itself estimated under a baseline ability model, a
+mild circularity that the width and skew sweep of
+Section~\ref{sec:ceiling} partially addresses. The method itself
+carries a requirement the
 case study made look easy: a defensible minimum practical difference.
 Arena offers one because its consumers read ratings at a known
 granularity and its published intervals set a floor; domains without a
@@ -1020,8 +1066,8 @@ judge panel structure and listwise comparisons.
 \section{Conclusion}
 
 We set out to referee a model comparison and ended up pricing it.
-The price, computed before fitting, was a ceiling of a fraction of
-one practical unit, and the audit spent 1.8 million votes, a
+The price, computed before the comparison was fit, was a ceiling of
+a fraction of one practical unit, and the audit spent 1.8 million votes, a
 replication, four pre-registered comparisons, one retracted
 mechanism, and one open anomaly confirming that the price was
 right. The comparison itself is settled: for ranking language
@@ -1139,7 +1185,13 @@ Ties & 2.0 pp & $+0.20$ & equivalence, lean lattice \\
 \bottomrule
 \end{tabular}
 \caption{Verdicts under alternative practical thresholds
-(\texttt{mpd\_sensitivity.csv}). The calibration interval stays inside
+(\texttt{mpd\_sensitivity.csv}). The sensitivity pipeline computes
+each anchor exactly ($4.14 \times 10^{-4}$ nats at ten Elo points,
+$3.125 \times 10^{-4}$ at one tie percentage point) where the
+headline verdicts use the rounded $4 \times 10^{-4}$ and $3 \times
+10^{-4}$; the paper-row estimates, $-0.12$ and $+0.80$, differ from
+the headline $-0.121$ and $+0.838$ by that threshold ratio alone.
+The calibration interval stays inside
 the equivalence band down to a 4.3 Elo bar. Leave-one-window-out
 checks (\texttt{loo\_windows.csv}): all thirteen calibration verdicts
 remain equivalence; the tie verdict is inconclusive in eleven of

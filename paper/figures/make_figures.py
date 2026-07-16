@@ -270,11 +270,11 @@ gains = pd.read_csv(T / "recalibration_gain.csv")
 recal = float(np.average(gains.gain_nats, weights=gains.n)) / 4e-4
 entries = [
     ("link-family choice\n(any lattice width vs logistic)", 0.31,
-     "$\\leq 0.23$ to $0.31\\times$ threshold\n(effect ceilings, computed before fitting)", BLUES["0.5855"]),
+     "decisive $\\leq 0.23\\times$, ties $\\leq 0.31\\times$ threshold\n(effect ceilings, computed before the comparison is fit)", BLUES["0.5855"]),
     ("largest single-window episode\n(tie channel, one month)", 9.55,
      "$9.6\\times$ threshold in one window", "#8a8781"),
     ("nonstationary drift\n(recalibration gain, all methods)", recal,
-     f"${recal:.1f}\\times$ threshold; tie share\n13.1% to 20.4% over 16 months", INK2),
+     f"${recal:.1f}\\times$ threshold; tie share 13.1% (first\n3 months) to 22.5% (final month)", INK2),
 ]
 fig, ax = plt.subplots(figsize=(6.6, 2.5))
 x0 = -1.4  # axis floor at 10^-1.4

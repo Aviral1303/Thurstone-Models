@@ -163,8 +163,10 @@ actually lives: all methods share the same forty-six percent
 underconfidence on next-month votes, up to three quarters of
 next-month votes involve a brand-new model that no ability estimator
 can score, and the tie rate itself drifts upward by nearly three
-quarters over the study period. Each of these exceeds the entire link-choice ceiling by one to
-two orders of magnitude.
+quarters over the study period. The first and the last of these
+exceed the entire link-choice ceiling by one to two orders of
+magnitude in its own unit, and the cold-start share is not
+expressible in that unit at all.
 
 Three findings give the audit its texture. First, the families do
 differ, but structurally rather than statistically: Davidson's tie
@@ -487,8 +489,8 @@ sit in the workflow.
 measured sizes in threshold units on a log scale for the three entries
 that admit the unit; the cold-start row has no comparable unit and is
 drawn hatched. Model choice is bounded by construction at a fraction
-of one unit, and every other line exceeds it by one to two orders of
-magnitude.}
+of one unit, and every other line that admits the unit exceeds it by
+one to two orders of magnitude.}
 \label{fig:concept}
 \end{figure}
 
@@ -630,7 +632,8 @@ improve together as the pool matures. Source:
 \label{fig:rq1}
 \end{figure}
 
-Nothing separates them. The median paired difference in Kendall's
+Nothing separates them. Quoting the $u = 0.1$ width, whose numbers
+the other widths repeat: the median paired difference in Kendall's
 $\tau_b$ is $+0.00026$, and the mean is $+0.0011$ with a
 window-bootstrap interval from $-0.0001$ to $+0.0025$ that touches
 zero; the lattice is more stable in seven windows, less in four, tied
@@ -680,8 +683,9 @@ mean of $z^2$ is one.
 \includegraphics[width=\linewidth]{figures/fig_rq2b.pdf}
 \caption{Mean squared additivity residual per sixty-day block, per
 link. The four links move together, inside the test's measured
-resolution, while two blocks show a shared excess that no link
-explains and that Section~\ref{sec:anomaly} takes up. Source:
+resolution, while two blocks, with a weaker echo in a third, show a
+shared excess that no link explains and that
+Section~\ref{sec:anomaly} takes up. Source:
 \texttt{rq2b\_blocks.csv}.}
 \label{fig:rq2b}
 \end{figure}
@@ -986,7 +990,9 @@ deliberately did not test testable at last.
 The budget in Figure~\ref{fig:concept} is the paper's summary. The
 line that model choice controls was bounded by construction at a
 fraction of one practical unit, and sixteen months of audit plus a
-replication never found anything above it. The lines that dominate
+replication never found anything above it on the decisive channel,
+while the tie channel's one excess traced to drift rather than to
+link shape (Section~\ref{sec:rq4}). The lines that dominate
 belong to estimation and drift: a shared factor of 1.46
 underconfidence on next-month votes, up to three quarters of votes
 unscoreable for want of any training data, single months in which
@@ -996,8 +1002,8 @@ period. A platform operator
 reading this budget knows the order of work, because each
 recommendation is a budget line read back. Cold starts first: shrink
 new entrants' estimates explicitly, since ridge buys the protection no
-link provides, worth about five threshold units in the one natural
-experiment our data offered. Drift second: recalibrating predictions
+link provides, worth about five and a half threshold units in the one
+natural experiment our data offered. Drift second: recalibrating predictions
 against recent outcomes is worth about twelve threshold units on our
 windows, roughly fifty times the entire link-choice ceiling, and
 parameter-uncertainty corrections do not substitute because the

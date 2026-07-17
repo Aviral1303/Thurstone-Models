@@ -1,6 +1,6 @@
 # Bot arena, multidimensional: MultiRay rating of the quantbots
 
-**Date:** 2026-07-16 · **Script:** `scripts/35_bot_arena_multiray.py` ·
+**Date:** 2026-07-16 · **Script:** `scripts/41_bot_arena_multiray.py` (renumbered from 35 on 2026-07-17; a parallel script 35, extension ceilings, landed on main) ·
 **Outputs:** `results/bot_arena_multiray/` · **Input:** script 33's
 `results/bot_arena/returns.csv` (97 resolved multi-bot YES/NO races, 11 bots)
 
@@ -106,14 +106,14 @@ the flip to higher-is-better happens exactly once, in
 `identified_skill` / the `skill` column. Lattice L=150 (unit 0.1) verified
 identical to the example's L=500 to 1.7e-13 and 4.4x faster.
 
-Refresh: re-run script 33 first (it writes `returns.csv`), then script 35.
+Refresh: re-run script 33 first (it writes `returns.csv`), then script 41 (bot-arena multiray).
 
 ---
 
 ## Addendum 2026-07-16: all-bots board (min_races = 1)
 
 Second run per user request ("do it for all of the bots"): `python
-scripts/35_bot_arena_multiray.py 1` → `results/bot_arena_multiray_min1/`.
+scripts/41_bot_arena_multiray.py 1` → `results/bot_arena_multiray_min1/`.
 Admitting single-race fields gives 26 conditions and makes the whole 11-bot
 field ONE connected block — the cotton↔metals gauge flows through single-race
 bridges (ladder_arb_1 vs cotton_fundamental_1, one cotton ladder; ladder_arb_1
@@ -145,5 +145,5 @@ resampling cluster, absent in ~36% of replicates); mercury 0.63.
 Webpage updated: `results/bot_arena/bot_arena_board.html` gained section
 "06 · The multidimensional view" (all-bots rank-CI chart + table + bridge
 and identification callouts), later sections renumbered, footer covers
-script 35; republished to the "Bot Arena — Quantbots Head-to-Head"
+script 41; republished to the "Bot Arena — Quantbots Head-to-Head"
 artifact.

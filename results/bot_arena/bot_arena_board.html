@@ -195,7 +195,7 @@
   <div class="statusbar">
     <span class="live"><span class="dot"></span>BOT ARENA</span>
     <span>QUANTBOTS &middot; MANIFOLD CLONE</span>
-    <span class="right">LEDGER THROUGH 2026-07-14 &middot; SCRIPT 33</span>
+    <span class="right">LEDGER THROUGH 2026-07-14 &middot; SCRIPTS 33 + 35</span>
   </div>
 
   <header class="hero">
@@ -401,8 +401,102 @@
     </div>
   </section>
 
+  <section id="multiray">
+    <p class="seclabel">06 &middot; The multidimensional view</p>
+    <h2>All eleven bots on one board &mdash; and what it costs to get there</h2>
+    <p>
+      The pairwise boards above refuse to compare across leagues, and for good reason.
+      The vendored package has a second machine that <em>can</em>: the multiray
+      calibrator gives every bot a latent skill <strong>vector</strong> in 2-D and every
+      repeated race field a direction; a bot's strength in a field is the projection of
+      its vector onto that field's ray, priced through the same lattice race model and
+      fitted to observed win frequencies. Because it is parametric geometry rather than
+      a win graph, thin evidence the duel boards reject as one-directional &mdash; a
+      single cerium race, one cotton ladder, two copper fields &mdash; becomes enough to
+      <em>place</em> every bot on a single board. Placement, not proof: the bootstrap
+      below prices that honesty in rank intervals.
+    </p>
+    <p>
+      Data: all 26 repeated fixed fields (down to single races, smoothed win
+      frequencies), one connected block, 200 cluster-bootstrap refits over the 10
+      underlyings. Ranks come from the identified part of the fit &mdash;
+      within-field-centered abilities &mdash; not from the raw embedding, which the data
+      cannot pin down (see the callout).
+    </p>
+
+    <div class="chart" id="chart-mray">
+      <p class="chtitle">Consensus rank with 95% bootstrap rank CI</p>
+      <p class="chsub">multiray dim = 2 &middot; race-weighted centered abilities &middot; 200 replicates over 10 underlying clusters</p>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead><tr>
+          <th class="l">Bot</th><th>Races</th><th>Fields</th>
+          <th>Consensus skill</th><th>Rank</th><th>Rank 95% CI</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="l bot">commodity_spot_1<span class="chip">Champion again</span></td><td>47</td><td>12</td><td>+0.500</td><td>1</td><td>1&ndash;6</td></tr>
+          <tr><td class="l bot">ladder_arb_1<span class="chip gray">Thin n</span></td><td>7</td><td>5</td><td>+0.366</td><td>2.5</td><td>1&ndash;8</td></tr>
+          <tr><td class="l bot">cotton_fundamental_1</td><td>32</td><td>4</td><td>+0.356</td><td>3</td><td>2&ndash;7</td></tr>
+          <tr><td class="l bot">ensemble_1<span class="chip gray">Thin n</span></td><td>6</td><td>4</td><td>+0.291</td><td>3</td><td>1&ndash;6</td></tr>
+          <tr><td class="l bot">commodity_1</td><td>10</td><td>1</td><td>+0.203</td><td>5</td><td>2&ndash;5</td></tr>
+          <tr><td class="l bot">nass_cotton_1<span class="chip gray">Thin n</span></td><td>2</td><td>1</td><td>&minus;0.108</td><td>6</td><td>4&ndash;7</td></tr>
+          <tr><td class="l bot">diffusion_mc_1</td><td>39</td><td>14</td><td>&minus;0.128</td><td>6</td><td>3&ndash;9</td></tr>
+          <tr><td class="l bot">news_drift_1</td><td>26</td><td>11</td><td>&minus;0.224</td><td>7</td><td>2&ndash;9</td></tr>
+          <tr><td class="l bot">pair_trading_1</td><td>47</td><td>13</td><td>&minus;0.341</td><td>8</td><td>3&ndash;10</td></tr>
+          <tr><td class="l bot">cftc_softs_1</td><td>31</td><td>3</td><td>&minus;0.442</td><td>10</td><td>3&ndash;10</td></tr>
+          <tr><td class="l bot">mercury_ensemble_1<span class="chip gray">1 race</span></td><td>1</td><td>1</td><td>&minus;0.483</td><td>10</td><td>6&ndash;11</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="tablenote">Skill = &minus;(race-weighted mean of within-field-centered ability); higher is better,
+      block-level gauge. Cotton-side bots appear in ~64% of bootstrap replicates (the whole cotton complex is
+      one resampling cluster), so their intervals are conditional on cotton being drawn. Skill CIs are not
+      shown: a minority of replicate fits diverge and make them meaningless &mdash; ranks are robust to this,
+      raw skill quantiles are not.</p>
+
+    <div class="callout">
+      <p class="ct">What this board hangs on</p>
+      <p>The cotton&ndash;metals gauge flows through <strong>single races</strong>:
+      ladder_arb_1 vs cotton_fundamental_1 (one cotton ladder, 0.75/0.25 after smoothing)
+      and ladder_arb_1 vs mercury_ensemble_1 (one cerium race), plus 1&ndash;2-race
+      copper, gold, rbob and platinum fields that place ensemble_1 and ladder_arb_1
+      against league 0. Remove any one bridge and the map falls back apart into the two
+      leagues. That fragility is exactly what the wide rank intervals are reporting.</p>
+    </div>
+
+    <p>
+      Where the boards can be compared, they agree: &tau; = 1.000 against the dense
+      (&ge; 3-race fields) multiray board on shared bots, 0.73 against the script 33
+      league 0 ordering and 0.67 against league 1 &mdash; with every disagreement inside
+      overlapping rank intervals. Seeds agree at &tau; 0.85&ndash;1.00 on the identified
+      summary, and win-frequency smoothing barely moves it (&tau; 0.93&ndash;0.96).
+    </p>
+
+    <div class="taugrid">
+      <div class="tau"><div class="v num">1.000</div><div class="k">vs dense multiray board<br>4 shared bots</div></div>
+      <div class="tau"><div class="v num">0.73 / 0.67</div><div class="k">vs script 33 boards<br>within league 0 / 1</div></div>
+      <div class="tau"><div class="v num">0.85&ndash;1.00</div><div class="k">Across optimizer seeds<br>identified summary</div></div>
+      <div class="tau"><div class="v num">0.93&ndash;0.96</div><div class="k">Smoothing &alpha; 0.25&ndash;1.0<br>win-frequency prior</div></div>
+    </div>
+
+    <div class="callout info">
+      <p class="ct">What trying the second dimension taught us</p>
+      <p>The 2-D embedding carries roughly as many effective parameters (~45) as the data
+      has free win frequencies (43): the geometry is a solution manifold, the per-field offset is a pure
+      translation ridge (one fit drifted to |&beta;| ~ 10<sup>13</sup> at zero cost), and the
+      package's alternating fit is a seed lottery that needs best-iterate + best-of-seeds
+      wrapping to converge. Rankings here therefore use only the identified part of the
+      fit. The one thing the extra dimension genuinely adds is per-field structure:
+      commodity_spot_1 crushes 2-bot palladium/silver fields (win prob 0.65&ndash;0.83)
+      yet drops below diffusion_mc_1 in the crowded 4-bot silver field (0.21) &mdash;
+      field-size dependence a single-&theta; board cannot express.</p>
+    </div>
+  </section>
+
   <section id="money">
-    <p class="seclabel">06 &middot; The money view</p>
+    <p class="seclabel">07 &middot; The money view</p>
     <h2>Companion table: who actually makes mana</h2>
     <p>
       The duel board measures <em>who beats whom on shared markets</em>. This table
@@ -463,7 +557,7 @@
   </section>
 
   <section id="caveats">
-    <p class="seclabel">07 &middot; Caveats</p>
+    <p class="seclabel">08 &middot; Caveats</p>
     <h2>What this board does and does not measure</h2>
     <ol class="caveats">
       <li><strong>Queue position is baked in.</strong> The daily cycle runs bots in a fixed
@@ -489,10 +583,13 @@
   </section>
 
   <footer>
-    Script: <code>scripts/33_bot_arena_ranking.py</code> &middot; Outputs: <code>results/bot_arena/</code>
-    (board, battles, returns, bootstrap, companion) &middot; Findings: <code>logs/BOT_ARENA_FINDINGS.md</code><br>
+    Scripts: <code>scripts/33_bot_arena_ranking.py</code> (duel boards) &middot;
+    <code>scripts/35_bot_arena_multiray.py</code> (multidimensional board) &middot;
+    Outputs: <code>results/bot_arena/</code>, <code>results/bot_arena_multiray_min1/</code> &middot;
+    Findings: <code>logs/BOT_ARENA_FINDINGS.md</code>, <code>logs/BOT_ARENA_MULTIRAY_FINDINGS.md</code><br>
     Data: <code>~/Bots/data/quantbots.sqlite</code> (read-only) &middot; Fits: lattice-Thurstone
-    (Cotton 2021, vendored) + Bradley-Terry, half-tie MLE &middot; Anchoring, tie handling, and
+    (Cotton 2021, vendored) + Bradley-Terry, half-tie MLE; multiray board via
+    <code>thurstone.multiray</code> &middot; Anchoring, tie handling, and
     bootstrap conventions follow the Thurstone-vs-BT paper machinery.
   </footer>
 </div>
@@ -625,6 +722,72 @@
     { bot: 'commodity_1', theta: -0.156, lo: -0.156, hi: -0.036, rec: '4–2–14', races: 10, rank: '1–2' },
     { bot: 'cftc_softs_1', theta: -0.607, lo: -1.051, hi: -0.155, rec: '3–18–22', races: 31, rank: '1–3' }
   ], [-1.4, 0.7], [-1.0, -0.5, 0, 0.5]);
+
+  /* ---------- multiray rank interval plot ---------- */
+  (function () {
+    var rows = [
+      { bot: 'commodity_spot_1', skill: 0.500, md: 1, lo: 1, hi: 6, races: 47, fields: 12, champ: true },
+      { bot: 'ladder_arb_1', skill: 0.366, md: 2.5, lo: 1, hi: 8, races: 7, fields: 5, thin: true },
+      { bot: 'cotton_fundamental_1', skill: 0.356, md: 3, lo: 2, hi: 7, races: 32, fields: 4 },
+      { bot: 'ensemble_1', skill: 0.291, md: 3, lo: 1, hi: 6, races: 6, fields: 4, thin: true },
+      { bot: 'commodity_1', skill: 0.203, md: 5, lo: 2, hi: 5, races: 10, fields: 1 },
+      { bot: 'nass_cotton_1', skill: -0.108, md: 6, lo: 4, hi: 7, races: 2, fields: 1, thin: true },
+      { bot: 'diffusion_mc_1', skill: -0.128, md: 6, lo: 3, hi: 9, races: 39, fields: 14 },
+      { bot: 'news_drift_1', skill: -0.224, md: 7, lo: 2, hi: 9, races: 26, fields: 11 },
+      { bot: 'pair_trading_1', skill: -0.341, md: 8, lo: 3, hi: 10, races: 47, fields: 13 },
+      { bot: 'cftc_softs_1', skill: -0.442, md: 10, lo: 3, hi: 10, races: 31, fields: 3 },
+      { bot: 'mercury_ensemble_1', skill: -0.483, md: 10, lo: 6, hi: 11, races: 1, fields: 1, thin: true }
+    ];
+    var mount = document.getElementById('chart-mray');
+    var W = 920, ROW = 34, padL = 172, padR = 40, padT = 26, padB = 30;
+    var H = padT + rows.length * ROW + padB;
+    var svg = svgEl('svg', { viewBox: '0 0 ' + W + ' ' + H, 'aria-label': 'Multiray consensus rank with 95% bootstrap rank intervals' });
+    function X(r) { return padL + (r - 1) / 10 * (W - padL - padR); }
+
+    for (var t = 1; t <= 11; t++) {
+      svg.appendChild(svgEl('line', { x1: X(t), x2: X(t), y1: padT, y2: H - padB,
+        stroke: t === 1 ? C.borderS : C.border, 'stroke-width': 1 }));
+      var lbl = svgEl('text', { x: X(t), y: H - padB + 16, 'text-anchor': 'middle',
+        fill: t === 1 ? C.text3 : C.muted, 'font-size': 10.5, 'font-family': MONO });
+      lbl.textContent = t;
+      svg.appendChild(lbl);
+    }
+    var axLbl = svgEl('text', { x: X(6), y: H - 4, 'text-anchor': 'middle',
+      fill: C.muted, 'font-size': 9.5, 'letter-spacing': '0.08em', 'font-family': MONO });
+    axLbl.textContent = 'BOOTSTRAP RANK  (1 = BEST OF 11)';
+    svg.appendChild(axLbl);
+
+    rows.forEach(function (r, i) {
+      var cy = padT + i * ROW + ROW / 2;
+      var g = svgEl('g', { cursor: 'default' });
+      var name = svgEl('text', { x: padL - 12, y: cy + 3.5, 'text-anchor': 'end',
+        fill: r.thin ? C.text3 : C.text2, 'font-size': 11.5, 'font-family': MONO });
+      name.textContent = r.bot;
+      g.appendChild(name);
+
+      g.appendChild(svgEl('line', { x1: X(r.lo), x2: X(r.hi), y1: cy, y2: cy,
+        stroke: r.champ ? C.signalDim : C.borderS, 'stroke-width': 2, 'stroke-linecap': 'round' }));
+      [r.lo, r.hi].forEach(function (v) {
+        g.appendChild(svgEl('line', { x1: X(v), x2: X(v), y1: cy - 4, y2: cy + 4,
+          stroke: r.champ ? C.signalDim : C.borderS, 'stroke-width': 2 }));
+      });
+      g.appendChild(svgEl('circle', { cx: X(r.md), cy: cy, r: 5,
+        fill: r.champ ? C.signal : C.text2, stroke: C.surface, 'stroke-width': 2 }));
+
+      var hit = svgEl('rect', { x: 0, y: cy - ROW / 2, width: W, height: ROW, fill: 'transparent' });
+      hit.addEventListener('mousemove', function (e) {
+        showTip(e, '<div class="tt">' + r.bot + '</div>' +
+          '<div class="row"><span>consensus skill</span><span>' + (r.skill > 0 ? '+' : '') + r.skill.toFixed(3) + '</span></div>' +
+          '<div class="row"><span>rank median</span><span>' + r.md + '</span></div>' +
+          '<div class="row"><span>rank 95% CI</span><span>' + r.lo + '–' + r.hi + '</span></div>' +
+          '<div class="row"><span>races / fields</span><span>' + r.races + ' / ' + r.fields + '</span></div>');
+      });
+      hit.addEventListener('mouseleave', hideTip);
+      g.appendChild(hit);
+      svg.appendChild(g);
+    });
+    mount.appendChild(svg);
+  })();
 
   /* ---------- PnL bar chart ---------- */
   (function () {

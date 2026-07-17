@@ -1,0 +1,12 @@
+block,comparison,kendall_tau
+0,seed 7 vs 999,0.8545454545454545
+0,rayproj seed 7 vs 999 (diagnostic),0.2
+0,seed 7 vs 43,1.0
+0,rayproj seed 7 vs 43 (diagnostic),0.5272727272727272
+0,dim=2 vs dim=1,0.6363636363636364
+0,alpha=0.5 vs 0.25,0.9636363636363636
+0,alpha=0.5 vs 1.0,0.9272727272727274
+0,min_races=1 vs 2 (6 shared bots),0.4666666666666666
+0,min_races=1 vs 3 (4 shared bots),1.0
+0,consensus vs script-33 theta (league 0.0),0.7333333333333333
+0,consensus vs script-33 theta (league 1.0),0.6666666666666669

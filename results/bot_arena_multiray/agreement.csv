@@ -1,0 +1,19 @@
+block,comparison,kendall_tau
+0,seed 999 vs 7,0.0
+0,rayproj seed 999 vs 7 (diagnostic),-0.3333333333333334
+0,seed 999 vs 43,0.6666666666666669
+0,rayproj seed 999 vs 43 (diagnostic),0.3333333333333334
+0,dim=2 vs dim=1,0.6666666666666669
+0,alpha=0.5 vs 0.25,1.0
+0,alpha=0.5 vs 1.0,1.0
+0,min_races=3 vs 2 (block grows to 6 bots),0.6666666666666669
+0,consensus vs script-33 theta,0.3333333333333334
+1,seed 43 vs 999,1.0
+1,rayproj seed 43 vs 999 (diagnostic),0.33333333333333337
+1,seed 43 vs 7,1.0
+1,rayproj seed 43 vs 7 (diagnostic),1.0
+1,dim=2 vs dim=1,1.0
+1,alpha=0.5 vs 0.25,1.0
+1,alpha=0.5 vs 1.0,1.0
+1,min_races=3 vs 2 (block grows to 4 bots),1.0
+1,consensus vs script-33 theta,1.0

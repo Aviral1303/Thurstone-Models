@@ -1,0 +1,10 @@
+cond_id,n_races,spans
+cerium|ladder_arb_1+mercury_ensemble_1,1,unplaced:ladder_arb_1 + unplaced:mercury_ensemble_1
+copper|ensemble_1+ladder_arb_1+news_drift_1,2,league0 + unplaced:ensemble_1 + unplaced:ladder_arb_1
+copper|ensemble_1+news_drift_1,1,league0 + unplaced:ensemble_1
+cotton|cftc_softs_1+cotton_fundamental_1+nass_cotton_1,2,league1 + unplaced:nass_cotton_1
+cotton|cotton_fundamental_1+ladder_arb_1,1,league1 + unplaced:ladder_arb_1
+gold|diffusion_mc_1+ensemble_1+news_drift_1,2,league0 + unplaced:ensemble_1
+gold|ensemble_1+news_drift_1,1,league0 + unplaced:ensemble_1
+platinum|diffusion_mc_1+ladder_arb_1+pair_trading_1,2,league0 + unplaced:ladder_arb_1
+rbob|commodity_spot_1+ladder_arb_1+pair_trading_1,1,league0 + unplaced:ladder_arb_1

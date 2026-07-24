@@ -1164,3 +1164,34 @@ MultiLensBot (4,937 races, CI 3–10). Our fleet is mid-table-to-bottom
 (best: cotton_fundamental_1 #61, commodity_spot_1 #69 of 130) — script
 33's board ranked relative skill among our bots only. Personal account
 MikhailTal is dead last (130/130, −0.84/mana). Main paper track unchanged.
+
+---
+
+## 2026-07-20 — Platform-wide multiray fixed and run (script 42)
+
+Side project (user go: "fix the model and get the entire thing running").
+The 2026-07-17 platform multiray run was degenerate (skills 1e9–1e10, seed
+τ 0.30; now archived at results/platform_multiray_degenerate_20260717/).
+The in-script hypothesis (field-size cap fixes an underdetermined geometry)
+was probed and REFUTED — caps 8–20 still saturate. Real root cause found in
+vendor multiray.py fit_inner: Gauss–Newton target y = −err/slope with
+slope_floor = 1e-10 ⇒ flat-tail (floor-priced) entrants get ~1e10 step
+targets that cascade through the shared LS updates.
+
+Fix (all outside the vendored model), each step probed before adoption:
+(1) slope_floor = 0.05 as trust region (constructor param; m41.SLOPE_FLOOR)
+— kills saturation, uncapped MSE 1.9e-2 → ~8e-4; (2) slope-weighted
+identified summary (m41.identified_skill_slopewt) — excludes the ~16% of
+cells where the price pins ability only to a half-line; seed τ 0.40 → 0.58;
+(3) 10-seed ensemble consensus — disjoint 10-seed ensembles agree at
+τ 0.821 (rated 0.811). Calibration: naive win-rate baseline reaches only
+τ 0.413 vs script 34's pairwise board, so τ ≈ 0.41 is the data's ceiling
+for any race-price model; the consensus hits it exactly (0.412).
+
+Production run (min_races=3): 494 conditions / 71 traders / one block;
+bootstrap 200/200 cluster replicates ×3-seed ensembles, 0 failures; 116 min.
+KelvinWaveTrader #1-equivalent (median 2 [1–4]) — same #1 as script 34.
+Fleet: AviralPoddar #26, LadderArbBot pt-63/med-10 [3–66], PairTradingBot
+#66, CommoditySpotBot #67 of 71. Full write-up:
+logs/BOT_ARENA_MULTIRAY_FINDINGS.md §Platform-wide multiray. min=1
+all-traders run in flight. Main paper track unchanged (standing by).

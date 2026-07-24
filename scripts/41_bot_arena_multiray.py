@@ -73,7 +73,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from thurstone import AbilityCalibrator, Density, UniformLattice  # noqa: E402
-from thurstone.multiray import MultiRayGlobalCalibrator  # noqa: E402
+from thurstone.multiray import (MultiRayGlobalCalibrator,  # noqa: E402
+                                _interp_price_and_slope_1d)
 
 RETURNS = ROOT / "results" / "bot_arena" / "returns.csv"
 BOARD_33 = ROOT / "results" / "bot_arena" / "board.csv"
@@ -101,6 +102,13 @@ LATTICE_UNIT = 0.1
 MAX_OUTER, INNER, PATIENCE = 30, 10, 6
 B_BOOT = 200
 BOOT_SEED = 20260716
+# Trust-region override for the package's Gauss-Newton step (see script 42):
+# fit_inner targets y = -err/slope with slope clamped at slope_floor = 1e-10,
+# so a flat-tail entrant (slope ~ 0) gets a ~1e10 step target and the fit
+# cascades to saturation. Raising the floor bounds |y| <= |err|/floor without
+# touching responsive-region slopes (~0.1-0.3). None = package default
+# (bot-arena fits never hit the tail; results unchanged).
+SLOPE_FLOOR = None
 
 
 # ---------------------------------------------------------------- conditions
@@ -188,7 +196,9 @@ def bipartite_blocks(cond: pd.DataFrame) -> list[set]:
 def fit_block(cond: pd.DataFrame, dim: int, seed: int) -> MultiRayGlobalCalibrator:
     """Fit with best-iterate selection (the package's loop is not monotone)."""
     bots = sorted(cond["bot"].unique())
-    fit = MultiRayGlobalCalibrator(item_ids=bots, dim=dim, random_state=seed)
+    kw = {} if SLOPE_FLOOR is None else {"slope_floor": SLOPE_FLOOR}
+    fit = MultiRayGlobalCalibrator(item_ids=bots, dim=dim, random_state=seed,
+                                   **kw)
     for cid, g in cond.groupby("cond_id"):
         grid = UniformLattice(L=LATTICE_L, unit=LATTICE_UNIT)
         base = Density.skew_normal(grid, loc=0.0, scale=1.0, a=0.0)
@@ -238,6 +248,33 @@ def identified_skill(fit: MultiRayGlobalCalibrator, cond: pd.DataFrame) -> pd.Se
             num[b] += w * a[k]
             den[b] += w
     return pd.Series({b: -num[b] / den[b] for b in num}).sort_index()
+
+
+def identified_skill_slopewt(fit: MultiRayGlobalCalibrator,
+                             cond: pd.DataFrame) -> pd.Series:
+    """identified_skill with cell weight = n_races * |local price slope|.
+
+    In the flat tail of a condition's price curve the observed price pins the
+    ability only to a half-line, so the fitted point value there is
+    optimizer-arbitrary; its slope is ~0 and the cell contributes ~nothing.
+    Introduced for the platform-scale fits (script 42), where ~16% of cells
+    are flat-tail and the plain summary is seed-unstable because of them.
+    """
+    n = cond.drop_duplicates("cond_id").set_index("cond_id")["n_races"]
+    num, den = defaultdict(float), defaultdict(float)
+    for spec in fit.conditions:
+        a = np.array([fit.ability(spec.cond_id, b) for b in spec.item_ids])
+        slopes = np.array([abs(_interp_price_and_slope_1d(spec.calibrator,
+                                                          float(mu))[1])
+                           for mu in a])
+        a = a - a.mean()
+        w0 = float(n[spec.cond_id])
+        for k, b in enumerate(spec.item_ids):
+            w = w0 * slopes[k]
+            num[b] += w * a[k]
+            den[b] += w
+    return pd.Series({b: (-num[b] / den[b] if den[b] > 0 else np.nan)
+                      for b in num}).sort_index()
 
 
 def rayproj_skill(fit: MultiRayGlobalCalibrator) -> pd.Series:

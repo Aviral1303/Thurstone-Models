@@ -147,3 +147,149 @@ Webpage updated: `results/bot_arena/bot_arena_board.html` gained section
 and identification callouts), later sections renumbered, footer covers
 script 41; republished to the "Bot Arena — Quantbots Head-to-Head"
 artifact.
+
+---
+
+## Platform-wide multiray (script 42), 2026-07-20: diagnosis, fix, and board
+
+**Script:** `scripts/42_platform_multiray.py` · **Outputs:**
+`results/platform_multiray/` (min=3) and `results/platform_multiray_min1/`
+(all traders) · **Input:** script 34's `returns_all.csv` (5,795 platform
+races, 163 traders).
+
+### The 2026-07-17 degenerate run and its real root cause
+
+The first full run (archived at
+`results/platform_multiray_degenerate_20260717/`; NEVER cite as a board)
+saturated: every condition ended with |centered ability| 1e7–6.8e10 against
+a ±7.5 lattice, consensus skills 1e9–1e10, seed τ ≈ 0.30. The hypothesis
+recorded at the time — huge fields put ~90% of entrants on one Laplace-floor
+price, leaving the geometry underdetermined, fixable by a field-size cap —
+was tested and is WRONG as stated: caps 8/12/15/20 still saturate (probe
+2026-07-20; it is a per-seed lottery — cap 15 seed 999 stayed healthy while
+seed 7 blew up at the same data).
+
+The actual root cause is numerical, in the package's `fit_inner`: the
+Gauss–Newton step target is y = −err/slope with the slope clamped at
+`slope_floor = 1e-10`. A floor-priced entrant in a 35–48-item field sits in
+the FLAT TAIL of its condition's price curve (slope ≈ 0), so its clamped
+step target is ~err×1e10; one such item pollutes the shared least-squares
+updates of (β, V) for every condition containing it and the whole fit
+cascades. Best-iterate snapshotting cannot save a fit that explodes inside
+the first inner iteration.
+
+### The fix (three parts, all outside the vendored model)
+
+1. **Trust region** — `slope_floor` is an exposed constructor parameter;
+   we set 0.05 (plumbed as `m41.SLOPE_FLOOR`, default None keeps the old
+   behavior for the bot-arena scripts). Bounds |step target| ≤ |err|/0.05
+   while leaving responsive-region slopes (~0.1–0.3) untouched. Saturation
+   gone everywhere: uncapped MSE 1.9e-2 → ~8e-4, abilities O(1)
+   (max |centered ability| over all 22 production fits: 1.74).
+2. **Slope-weighted identified summary** — post-fix, seeds still land on an
+   MSE plateau (0.8–1.2e-3) carrying DIFFERENT rankings (pairwise τ ≈ 0.40;
+   neither longer inner loops nor dim=1 helps; restricting to well-placed
+   traders makes it WORSE, so it is not small-sample noise). Cause: ~16% of
+   (condition, entrant) cells are flat-tail, where the observed price pins
+   the ability only to a half-line — the fitted point value is
+   optimizer-arbitrary, and the plain summary averages it in.
+   `identified_skill_slopewt` weights each cell by n_races × |local price
+   slope|, excluding exactly the unpinned cells: pairwise seed τ 0.40 →
+   0.58.
+3. **Seed-ensemble consensus** — the board is the mean slope-weighted
+   summary over 10 seeds. Certified before the production run: two DISJOINT
+   10-seed ensembles agree at τ = 0.821 (rated ≥20 races: 0.811), vs
+   0.15–0.48 for single fits. Per-seed summaries persisted
+   (`seed_summaries.csv`).
+
+### Calibration of the external check
+
+The naive smoothed-win-rate baseline reaches only τ ≈ 0.413 against script
+34's pairwise board — race-price aggregation (winner-take-all, fixed
+fields) and 2.5M pairwise duels measure genuinely different things on this
+platform. τ ≈ 0.41 is therefore the ceiling for ANY race-price model here,
+not a defect. The multiray consensus hits exactly that ceiling: τ = 0.412
+(all placed), 0.385 (rated).
+
+### Board (min_races = 3): 494 conditions, 71 traders, ONE block
+
+Fit: 10-seed ensemble, per-seed MSE 7.6e-4–1.2e-3, best seed 404.
+Bootstrap: 200/200 cluster replicates (1,076 clusters), 0 failures, each
+replicate a 3-seed ensemble. In-run stability: half-ensemble (5v5) τ 0.744;
+α=0.25/1.0 τ 0.858/0.821; dim=1 τ 0.657; min_races=5 τ 0.426 (thinning).
+
+Top of the board (rank = bootstrap median [95% CI]):
+KelvinWaveTrader 2 [1–4] — the same #1 as script 34's independent pairwise
+board; BiosecurityBot 1 [1–12.7]; PrivateFundingBot 3 [1–70] (1 condition,
+19 races — the wide CI is honest); SurfaceBrowser 4 [1–69];
+WhiteGoldTrader 5 [3–69]. Best high-volume traders: MomentumBot 11 [6–25]
+(398 conditions / 4,453 races), BearCaseBot 14 [8–26], MultiLensBot 15
+[9–28] (4,937 races; CI 3–10 on script 34 — consistent mid-top placement).
+
+Our fleet (platform usernames per `~/Bots/config/bots.yaml`): AviralPoddar
+(shared-key account) #26, LadderArbBot #63 point but bootstrap median 10
+[3–66] (2 conditions only — point rank unstable, CI is the story),
+PairTradingBot #66 [31.7–69.5], CommoditySpotBot #67 [59.8–70] of 71 —
+consistent with script 34's mid-table-to-bottom fleet placement.
+92 traders have no fixed field with ≥3 races and are unplaced here (the
+min=1 run places them).
+
+### Bottom line
+
+The multidimensional system CAN rate the whole platform once its optimizer
+is trust-regioned and the summary is restricted to price-pinned cells, and
+its board agrees with the pairwise leaderboard exactly as much as the data
+allows any race-price model to (τ at the naive ceiling). What it adds over
+script 34 is the per-condition ability decomposition and the embedding; what
+it cannot do at this sparsity is beat the pairwise board's precision (rank
+CIs here are much wider than script 34's).
+
+### Addendum: all-traders board (min_races = 1), same day
+
+`python scripts/42_platform_multiray.py 1` → `results/platform_multiray_min1/`.
+Admitting single-race fields places ALL 163 traders in ONE block over 3,897
+conditions. Fit: 10-seed ensemble, MSE 5.8–9.4e-4, no saturation (max
+|centered ability| 1.31), 20 min wall. No bootstrap by design; stability
+evidence: half-ensemble τ 0.723 (rated 0.654); consensus vs the min=3 board
+τ 0.463 on shared traders (single-race winner-take-all conditions genuinely
+shift thin traders); vs script 34 τ 0.177/0.230 (all/rated) against a naive
+ceiling of 0.138 here — the consensus extracts MORE pairwise-consistent
+signal than the raw win-rate at this sparsity.
+
+Read the min=1 board jointly with n_races and consensus_seed_std: the top is
+dominated by thin accounts whose seed_std flags them (TermStructureBot #1 at
+3 races, seed_std 0.23 — noise; OliviaDAngelo #2 at 2 races). Credible
+high-data placements: BiosecurityBot #3 (56 races), KelvinWaveTrader #4
+(57), CottonTextBot #8 (69). Fleet: EnsembleBot #6 (15 races),
+LadderArbBot #12 (98), AviralPoddar #14 (230), MikhailTal #77 of 163
+(108 races — dead last on script 34's per-mana pairwise board but midfield
+on race wins: loses money per mana while still occasionally topping a
+field), DiffusionMcBot #134, PairTradingBot #138, CommoditySpotBot #143,
+Bot007 #150, Cottonfundamental1 #153, Cftcsofts1 #156, Nasscotton1 #159.
+
+### Addendum 2026-07-20: dimensionality test — the 2nd dimension is not real
+
+User question: can the two dimensions be classified? Post-hoc geometry
+(best seed) suggested axis 1 ~ general skill (|rho| 0.46 with the board) and
+axis 2 ~ a faint softs-vs-precious contrast (rho +-0.24-0.27), but rays are
+near-isotropic (eigen split 55/45; mean |cos| 0.68 vs 0.64 for random) and
+the orientation is seed-unstable, so a pre-registered gate was run first.
+
+**Held-out dimensionality test** (scratchpad step1_dim_test.py; 5 random
+half-splits of races within each >=4-race condition, 211 scored conditions /
+484 test races per split; dims 1/2/3 fitted on train with the production
+pipeline, 3-seed ensemble predictions; race-weighted MSE vs raw held-out win
+frequencies): carry-forward of the train frequencies wins on ALL 5 splits
+(12.95e-3) over dim3 (13.59) < dim2 (13.65) < dim1 (13.78) < uniform
+(13.85). Higher dim improves prediction monotonically (dim2 < dim1 on 5/5
+splits, dim3 < dim2 on 5/5) but only ever TOWARD the carry-forward ceiling,
+never past it — the signature of per-condition memorization (each dim adds
+ray parameters), not shared skill structure. The latent model at every
+dimension predicts held-out races WORSE than the raw training frequencies:
+cross-trader pooling adds no out-of-sample value at this sparsity.
+
+**Verdict: no evidence for a genuine 2nd dimension.** The axis labels above
+are unverified visual suggestions; the dimensions are unidentified surplus
+capacity. Identification would need experimentally generated bridging races
+(same entrant sets repeated across contrasting market families) — the fleet
+can produce these; organic platform data does not contain them.

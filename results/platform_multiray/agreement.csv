@@ -1,0 +1,15 @@
+comparison,kendall_tau
+mean pairwise seed tau (slope-wt summary),0.5908249496981892
+mean pairwise seed tau (rated >= 20),0.5695557450033153
+half-ensemble (5 vs 5 disjoint seeds),0.7440643863179075
+half-ensemble (rated >= 20),0.7297527706734868
+consensus vs plain-summary ensemble (diagnostic),0.6901408450704227
+consensus vs best-seed rayproj (diagnostic),0.22334004024144874
+dim=2 vs dim=1 (3-seed ens),0.6571428571428573
+alpha=0.5 vs 0.25 (3-seed ens),0.8583501006036218
+alpha=0.5 vs 1.0 (3-seed ens),0.8213279678068411
+min_races=3 vs 5 (3-seed ens),0.42606516290726826
+consensus vs naive win-rate baseline,0.7480885311871228
+consensus vs script-34 theta (all placed),0.41247484909456744
+consensus vs script-34 theta (rated >= 20 races),0.38533674339300933
+naive baseline vs script-34 theta (calibration: the data's ceiling),0.4132796780684105

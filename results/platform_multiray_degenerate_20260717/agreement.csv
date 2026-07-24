@@ -1,0 +1,11 @@
+comparison,kendall_tau
+seed 7 vs 999,0.3014084507042254
+rayproj seed 7 vs 999 (diagnostic),-0.003621730382293763
+seed 7 vs 43,0.32474849094567404
+rayproj seed 7 vs 43 (diagnostic),-0.0977867203219316
+dim=2 vs dim=1,0.3263581488933602
+alpha=0.5 vs 0.25,0.16056338028169015
+alpha=0.5 vs 1.0,0.07283702213279679
+min_races=3 vs 5 (57 shared traders),0.12280701754385966
+consensus vs script-34 theta (all placed),0.17022132796780687
+consensus vs script-34 theta (rated >= 20 races),0.18158567774936063
